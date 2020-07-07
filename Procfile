@@ -1,1 +1,1 @@
-worker: go run cmd/app/main.go
+worker: ./bin/listto
