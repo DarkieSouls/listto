@@ -2,6 +2,8 @@ package bot
 
 import (
 	"fmt"
+
+	"github.com/DarkieSouls/listto/cmd/config"
 )
 
 func addToList(list, arg string) string {
@@ -43,8 +45,9 @@ func ping() string {
 	return "pong"
 }
 
-func prefix() string {
-	return "Will eventually let you update bot prefix"
+func prefix(p string, c *config.Config) string {
+	c.SetPrefix(p)
+	return fmt.Sprintf("Set Listto prefix to %s", p)
 }
 
 func createPrivateList(list, arg string) string {

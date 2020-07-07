@@ -84,7 +84,8 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case "ping":
 		resp = ping()
 	case "prefix", "p":
-		resp = prefix()
+		// It's not actually a list, but for ease of writing code I'm reusing teh variable.
+		resp = prefix(list, conf)
 	case "privatecreate", "pc":
 		resp = createPrivateList(list, arg)
 	case "random", "ra":
