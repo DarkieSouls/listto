@@ -4,99 +4,126 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/bwmarrin/discordgo"
 
 	"github.com/DarkieSouls/listto/cmd/config"
 )
 
-var (
+// bot holds all the info that needs to be passed around the bot.
+type bot struct {
 	dgo *discordgo.Session
 	botID string
 	conf *config.Config
-)
-
-func Start(c *config.Config) {
-	conf = c
-
-	dgo, err := discordgo.New("Bot " + conf.Token())
-	if err != nil {
-		fmt.Println("That's an error!", err)
-		return
-	}
-
-	u, err := dgo.User("@me")
-	if err != nil {
-		fmt.Println("That's an error!", err)
-	}
-
-	botID = u.ID
-
-	dgo.AddHandler(messageHandler)
-
-	if err := dgo.Open(); err != nil {
-		fmt.Println("That's an error!", err)
-		return
-	}
-
-	fmt.Println("Some success")
+	ddb *dynamodb.DynamoDB
 }
 
-func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-	var list, arg, resp string
+// New creates a new bot instance.
+func New(conf *config.Config, ddb *dynamodb.DynamoDB) *bot {
+	return &bot{
+		conf: conf,
+		ddb: ddb,
+	}
+}
 
-	if m.Author.ID == botID {
+// Config gets the config stored in the bot.
+func (b *bot) Config() *config.Config {
+	return b.conf
+}
+
+// DDB gets the DDB instance stored in the bot.
+func (b *bot) DDB() *dynamodb.DynamoDB {
+	return b.ddb
+}
+
+// Start the bot listener.
+func (b *bot) Start() {
+	dgo, err := discordgo.New("Bot " + b.conf.Token())
+	if err != nil {
+		fmt.Println("could not create session", err)
+		return
+	}
+	b.dgo = dgo
+
+	u, err := b.dgo.User("@me")
+	if err != nil {
+		fmt.Println("could not get bot user", err)
+	}
+
+	b.botID = u.ID
+
+	b.dgo.AddHandler(b.messageHandler())
+
+	if err := b.dgo.Open(); err != nil {
+		fmt.Println("could not open session", err)
 		return
 	}
 
-	if !strings.HasPrefix(m.Content, conf.Prefix()) {
-		return
-	}
+	fmt.Println("The bot has awoken...")
+}
 
-	message := strings.Split(strings.TrimPrefix(m.Content, conf.Prefix()), " ")
-	if len(message) == 0 {
-		return
-	}
+// messageHandler returns a handlerfunc for messages.
+func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		var list, arg, resp string
 
-	if len(message) > 1 {
-		list = message[1]
-	}
-	if len(message) > 2 {
-		arg = message[2]
-		for i := 3; i < len(message); i++ {
-			arg = arg + " " + message[i]
+		if m.Author.ID == b.botID {
+			return
 		}
-	}
 
-	command := strings.ToLower(message[0])
-	switch command {
-	case "add", "a":
-		resp = addToList(list, arg)
-	case "clear", "cl":
-		resp = clearList(list)
-	case "create", "c":
-		resp = createList(list)
-	case "delete", "d":
-		resp = deleteList(list)
-	case "help", "h":
-		resp = help()
-	case "list", "l":
-		resp = listLists()
-	case "ping":
-		resp = ping()
-	case "prefix", "p":
-		// It's not actually a list, but for ease of writing code I'm reusing teh variable.
-		resp = prefix(list, conf)
-	case "privatecreate", "pc":
-		resp = createPrivateList(list, arg)
-	case "random", "ra":
-		resp = randomFromList(list)
-	case "remove", "re":
-		resp = removeFromList(list, arg)
-	case "sort", "s":
-		resp = sortList(list, arg)
-	}
+		if !strings.HasPrefix(m.Content, b.conf.Prefix()) {
+			return
+		}
 
-	if resp != "" {
-		_, _ = s.ChannelMessageSend(m.ChannelID, resp)
+		message := strings.Split(strings.TrimPrefix(m.Content, b.conf.Prefix()), " ")
+		if len(message) == 0 {
+			return
+		}
+
+		if len(message) > 1 {
+			list = message[1]
+		}
+		if len(message) > 2 {
+			arg = message[2]
+			for i := 3; i < len(message); i++ {
+				arg = arg + " " + message[i]
+			}
+		}
+		guild := m.GuildID
+
+		command := strings.ToLower(message[0])
+		switch command {
+		case "add", "a":
+			resp = b.addToList(guild, list, arg)
+		case "clear", "cl":
+			resp = b.clearList(guild, list)
+		case "create", "c":
+			resp = b.createList(guild, list)
+		case "delete", "d":
+			resp = b.deleteList(guild, list)
+		case "get", "g":
+			resp = b.getList(guild, list)
+		case "help", "h":
+			resp = b.help()
+		case "list", "l":
+			resp = b.listLists(guild)
+		case "ping":
+			resp = b.ping()
+		case "prefix", "p":
+			// It's not actually a list, but for ease of writing code I'm reusing the variable.
+			resp = b.prefix(guild, list)
+		case "privatecreate", "pc":
+			resp = b.createPrivateList(guild, list, arg)
+		case "random", "ra":
+			resp = b.randomFromList(guild, list)
+		case "remove", "re":
+			resp = b.removeFromList(guild, list, arg)
+		case "sort", "s":
+			resp = b.sortList(guild, list, arg)
+		}
+
+		if resp != "" {
+			_, _ = s.ChannelMessageSend(m.ChannelID, resp)
+		}
 	}
 }
