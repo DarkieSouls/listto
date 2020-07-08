@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -31,7 +32,7 @@ func (b *bot) addToList(guild, list, arg string) string {
 		return failMsg
 	}
 
-	lis.AddItem(arg, time.Now())
+	lis.AddItem(arg, time.Now().Unix())
 
 	if err := b.putDDB(lis); err != nil {
 		err.LogError()
@@ -228,7 +229,23 @@ func (b *bot) removeFromList(guild, list, arg string) string {
 
 // sortList sorts the list.
 func (b *bot) sortList(guild, list, arg string) string {
-	return fmt.Sprintf("Will eventually work to sort list %s", list)
+	sort := strings.ToLower(arg)
+	if sort != "name" && sort != "time" {
+		return "Sorry! I only sort by \"name\" or \"time\"!"
+	}
+
+	lis, err := b.getDDB(guild, list)
+	if err != nil {
+		if err.Code() == listtoErr.ListNotFound {
+			return noList(list)
+		}
+		err.LogError()
+		return failMsg
+	}
+
+	lis.Sort(sort)
+
+	return fmt.Sprintf("I have sorted %s by %s!", list, arg)
 }
 
 func (b *bot) putDDB(in interface{}) (lisErr *listtoErr.ListtoError) {

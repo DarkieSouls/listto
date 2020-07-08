@@ -2,6 +2,7 @@ package lists
 
 import (
 	"math/rand"
+	"sort"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type ListtoList struct {
 // ListItem represents a single value in a list.
 type ListItem struct {
 	Value string `json:"value"`
-	TimeAdded time.Time `json:"timeAdded"`
+	TimeAdded int64 `json:"timeAdded"`
 }
 
 func NewList(guild, name string, private bool) *ListtoList {
@@ -27,7 +28,7 @@ func NewList(guild, name string, private bool) *ListtoList {
 	}
 }
 
-func (l *ListtoList) AddItem(item string, timeAdded time.Time) {
+func (l *ListtoList) AddItem(item string, timeAdded int64) {
 	l.List = append(l.List, ListItem{Value: item, TimeAdded: timeAdded})
 }
 
@@ -48,4 +49,16 @@ func (l *ListtoList) SelectRandom() string {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	i := r.Intn(len(l.List))
 	return l.List[i].Value
+}
+
+func (l *ListtoList) Sort(sorter string) {
+	if sorter == "name" {
+		sort.Slice(l.List, func(i, j int) bool {
+			return l.List[i].Value < l.List[j].Value
+		})
+	} else if sorter == "time" {
+		sort.Slice(l.List, func(i, j int) bool {
+			return l.List[i].TimeAdded < l.List[j].TimeAdded
+		})
+	}
 }
