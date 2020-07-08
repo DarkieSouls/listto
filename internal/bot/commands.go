@@ -88,7 +88,7 @@ func (b *bot) createList(guild, list string) string {
 func (b *bot) deleteList(guild, list string) string {
 	input := (&dynamodb.DeleteItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
 		"guild": (&dynamodb.AttributeValue{}).SetS(guild),
-		"list":(&dynamodb.AttributeValue{}).SetS(list),
+		"name":(&dynamodb.AttributeValue{}).SetS(list),
 	})
 
 	_, err := b.ddb.DeleteItem(input)
@@ -274,7 +274,7 @@ func (b *bot) getDDB(guild, lis string) (list *lists.ListtoList, lisErr *listtoE
 
 	input := (&dynamodb.GetItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
 		"guild": (&dynamodb.AttributeValue{}).SetS(guild),
-		"list": (&dynamodb.AttributeValue{}).SetS(lis),
+		"name": (&dynamodb.AttributeValue{}).SetS(lis),
 	})
 
 	output, err := b.ddb.GetItem(input)
