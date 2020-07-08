@@ -156,6 +156,7 @@ func (b *bot) listLists(guild string) string {
 		}
 		resp = fmt.Sprintf("%s\n%s", resp, lis)
 	}
+
 	return resp
 }
 
@@ -172,7 +173,23 @@ func (b *bot) prefix(guild, p string) string {
 
 // createPrivateList creates a list with limited access.
 func (b *bot) createPrivateList(guild, list, arg string) string {
-	return fmt.Sprintf("Will eventually work to let you create a private list %s granting access to %s", list, arg)
+	lis := lists.NewList(guild, list, true)
+
+	_, err := b.getDDB(guild, list)
+	if err != nil {
+		return fmt.Sprintf("I found another list already called %s", list)
+	}
+	if err.Code() != listtoErr.ListNotFound {
+		err.LogError()
+		return failMsg
+	}
+
+	if err := b.putDDB(lis); err != nil {
+		err.LogError()
+		return fmt.Sprintf("I couldn't create a list called %s", list)
+	}
+
+	return fmt.Sprintf("I created %s for you, but privacy currently doesn't do anything", list)
 }
 
 // randomFromList selects a random element from the list.
