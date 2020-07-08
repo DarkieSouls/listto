@@ -86,7 +86,17 @@ func (b *bot) createList(guild, list string) string {
 
 // deleteList deletes a list.
 func (b *bot) deleteList(guild, list string) string {
-	return fmt.Sprintf("Will eventually work to delete list %s", list)
+	input := (&dynamodb.DeleteItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
+		"listID": (&dynamodb.AttributeValue).SetS(fmt.Sprintf("%s-%s", guild, list)),
+	})
+
+	_, err := b.ddb.DeleteItem(input)
+	if err != nil {
+		fmt.Println("failed to delete item", err)
+		return fmt.Sprintf("I couldn't delete %s", list)
+	}
+
+	return fmt.Sprintf("I have deleted %s", list)
 }
 
 // getList gets a list.
