@@ -17,12 +17,16 @@ const (
 	failMsg = "Oops, I had a problem doing that for you"
 )
 
+func noList(list string) string {
+	return fmt.Sprintf("I couldn't find a list called %s", list)
+}
+
 // addToList adds a value to a list.
 func (b *bot) addToList(guild, list, arg string) string {
 	lis, err := b.getDDB(fmt.Sprintf("%s-%s", guild, list))
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
-			return fmt.Sprintf("I couldn't find a list called %s", list)
+			return noList(list)
 		}
 		err.LogError()
 		return failMsg
@@ -40,7 +44,23 @@ func (b *bot) addToList(guild, list, arg string) string {
 
 // clearList wipes a list of it's values.
 func (b *bot) clearList(guild, list string) string {
-	return fmt.Sprintf("Will eventually work to clear list %s", list)
+	lis, err := b.getDDB(fmt.Sprintf("%s-%s", guild, list))
+	if err != nil {
+		if err.Code() == listtoErr.ListNotFound {
+			return noList()
+		}
+		err.LogError()
+		return failMsg
+	}
+
+	lis.Clear()
+
+	if err := b.putDDB(lis); err != nil {
+		err.LogError()
+		return fmt.Sprintf("I couldn't clear %s", list)
+	}
+
+	return fmt.Sprintf("I've cleared %s", list)
 }
 
 // createList creates a new list.
