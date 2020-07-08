@@ -245,6 +245,11 @@ func (b *bot) sortList(guild, list, arg string) string {
 
 	lis.Sort(sort)
 
+	if err := b.putDDB(lis); err != nil {
+		err.LogError()
+		return failMsg
+	}
+
 	return fmt.Sprintf("I have sorted %s by %s!", list, arg)
 }
 
