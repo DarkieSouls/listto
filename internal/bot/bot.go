@@ -122,7 +122,11 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		}
 
 		if resp != nil {
-			_, _ = s.ChannelMessageSendEmbed(m.ChannelID, resp)
+			_, err := s.ChannelMessageSendEmbed(m.ChannelID, resp)
+			if err != nil {
+				fmt.Println("failed to send to discord", err)
+				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, failMsg())
+			}
 		}
 	}
 }
