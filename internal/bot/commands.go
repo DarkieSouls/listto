@@ -224,6 +224,11 @@ func (b *bot) removeFromList(guild, list, arg string) string {
 
 	lis.RemoveItem(arg)
 
+	if err := b.putDDB(lis); err != nil {
+		err.LogError()
+		return failMsg
+	}
+
 	return fmt.Sprintf("I have removed %s from %s", arg, list)
 }
 
