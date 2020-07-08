@@ -168,6 +168,10 @@ func (b *bot) getList(guild, list string) *discordgo.MessageEmbed {
 				Name: list,
 				Value: values,
 			},
+			{
+				Name: "List entries",
+				Value: fmt.Sprintf("%d", len(lis.List)),
+			},
 		},
 	}
 }
