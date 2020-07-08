@@ -250,7 +250,7 @@ func (b *bot) listLists(guild string) *discordgo.MessageEmbed {
 		Color: green,
 		Fields: []*discordgo.MessageEmbedField{
 			{
-				Name: "Your lists"
+				Name: "Your lists",
 				Value: values,
 			},
 		},
