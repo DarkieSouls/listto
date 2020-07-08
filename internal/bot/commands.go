@@ -212,7 +212,18 @@ func (b *bot) randomFromList(guild, list string) string {
 
 // removeFromList removes an item from the list.
 func (b *bot) removeFromList(guild, list, arg string) string {
-	return fmt.Sprintf("Will eventually work to remove %s from list %s", arg, list)
+	lis, err := b.getDDB(guild, list)
+	if err != nil {
+		if err.Code() == listtoErr.ListNotFound {
+			return noList(list)
+		}
+		err.LogError()
+		return failMsg
+	}
+
+	lis.RemoveItem(arg)
+
+	return fmt.Sprintf("I have removed %s from %s", arg, list)
 }
 
 // sortList sorts the list.
