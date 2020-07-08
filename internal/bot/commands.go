@@ -137,7 +137,8 @@ func (b *bot) help() string {
 
 // listLists prints a list of lists on the server.
 func (b *bot) listLists(guild string) string {
-	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression(fmt.Sprintf("guild = :%s", guild))
+	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1").
+		SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{"v1": (&dynamodb.AttributeValue{}).SetS(guild)})
 
 	output, err := b.ddb.Query(input)
 	if err != nil {
