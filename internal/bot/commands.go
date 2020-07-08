@@ -167,12 +167,14 @@ func (b *bot) ping() string {
 
 // prefix updates the bot prefix.
 func (b *bot) prefix(guild, p string) string {
+	// todo: make this bot owner only
 	b.Config().SetPrefix(p)
 	return fmt.Sprintf("Set Listto prefix to %s", p)
 }
 
 // createPrivateList creates a list with limited access.
 func (b *bot) createPrivateList(guild, list, arg string) string {
+	// todo: make this actually have an effect
 	lis := lists.NewList(guild, list, true)
 
 	_, err := b.getDDB(guild, list)
@@ -194,7 +196,18 @@ func (b *bot) createPrivateList(guild, list, arg string) string {
 
 // randomFromList selects a random element from the list.
 func (b *bot) randomFromList(guild, list string) string {
-	return fmt.Sprintf("Will eventually work to select a random entity from list %s", list)
+	lis, err := b.getDDB(guild, list)
+	if err != nil {
+		if err.Code() == listtoErr.ListNotFound {
+			return noList(list)
+		}
+		err.LogError()
+		return failMsg
+	}
+
+	random := lis.SelectRandom()
+
+	return fmt.Sprintf("A random element from %s is %s", list, random)
 }
 
 // removeFromList removes an item from the list.

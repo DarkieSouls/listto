@@ -1,6 +1,7 @@
 package lists
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -41,4 +42,10 @@ func (l *ListtoList) RemoveItem(item string) {
 
 func (l *ListtoList) Clear() {
 	l.List = make([]ListItem, 0)
+}
+
+func (l *ListtoList) SelectRandom() string {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	i := r.Intn(len(l.List))
+	return l.List[i].Value
 }
