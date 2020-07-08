@@ -65,7 +65,7 @@ func (b *bot) Start() {
 // messageHandler returns a handlerfunc for messages.
 func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		var list, arg, resp string
+		var list, arg string
 
 		if m.Author.ID == b.botID {
 			return
@@ -91,6 +91,8 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		}
 		guild := m.GuildID
 
+		var resp *discordgo.MessageEmbed
+
 		command := strings.ToLower(message[0])
 		switch command {
 		case "add", "a":
@@ -109,21 +111,18 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 			resp = b.listLists(guild)
 		case "ping":
 			resp = b.ping()
-		case "prefix", "p":
-			// It's not actually a list, but for ease of writing code I'm reusing the variable.
-			resp = b.prefix(guild, list)
 		case "privatecreate", "pc":
 			resp = b.createPrivateList(guild, list, arg)
-		case "random", "ra":
+		case "random", "rv":
 			resp = b.randomFromList(guild, list)
-		case "remove", "re":
+		case "remove", "r":
 			resp = b.removeFromList(guild, list, arg)
 		case "sort", "s":
 			resp = b.sortList(guild, list, arg)
 		}
 
-		if resp != "" {
-			_, _ = s.ChannelMessageSend(m.ChannelID, resp)
+		if resp != nil {
+			_, _ = s.ChannelMessageSendEmbed(m.ChannelID, resp)
 		}
 	}
 }
