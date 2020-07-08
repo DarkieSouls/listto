@@ -156,7 +156,7 @@ func (b *bot) listLists(guild string) string {
 		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
 			return failMsg
 		}
-		resp = fmt.Sprintf("%s\n%s", resp, lis)
+		resp = fmt.Sprintf("%s\n%s", resp, lis.Name)
 	}
 
 	return resp
