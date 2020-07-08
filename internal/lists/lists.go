@@ -1,14 +1,12 @@
 package lists
 
 import (
-	"fmt"
 	"time"
 )
 
 // ListtoList defines the list object that holds all needed data for each list
 type ListtoList struct {
 	Guild string `json:"guild"`
-	ListID string `json:"listID"`
 	Name string `json:"name"`
 	Private bool `json:"private"`
 	List []ListItem `json:"list"`
@@ -23,7 +21,6 @@ type ListItem struct {
 func NewList(guild, name string, private bool) *ListtoList {
 	return &ListtoList{
 		Guild: guild,
-		ListID: fmt.Sprintf("%s-%s", guild, name),
 		Name: name,
 		Private: private,
 	}

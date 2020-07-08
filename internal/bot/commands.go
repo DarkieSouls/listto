@@ -2,7 +2,6 @@ package bot
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -23,7 +22,7 @@ func noList(list string) string {
 
 // addToList adds a value to a list.
 func (b *bot) addToList(guild, list, arg string) string {
-	lis, err := b.getDDB(fmt.Sprintf("%s-%s", guild, list))
+	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
 			return noList(list)
@@ -44,7 +43,7 @@ func (b *bot) addToList(guild, list, arg string) string {
 
 // clearList wipes a list of it's values.
 func (b *bot) clearList(guild, list string) string {
-	lis, err := b.getDDB(fmt.Sprintf("%s-%s", guild, list))
+	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
 			return noList(list)
@@ -67,7 +66,7 @@ func (b *bot) clearList(guild, list string) string {
 func (b *bot) createList(guild, list string) string {
 	lis := lists.NewList(guild, list, false)
 
-	_, err := b.getDDB(fmt.Sprintf("%s-%s", guild, list))
+	_, err := b.getDDB(guild, list)
 	if err == nil {
 		return fmt.Sprintf("I found another list already called %s", list)
 	}
@@ -87,7 +86,8 @@ func (b *bot) createList(guild, list string) string {
 // deleteList deletes a list.
 func (b *bot) deleteList(guild, list string) string {
 	input := (&dynamodb.DeleteItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
-		"listID": (&dynamodb.AttributeValue{}).SetS(fmt.Sprintf("%s-%s", guild, list)),
+		"guild": (&dynamodb.AttributeValue{}).SetS(guild),
+		"list":(&dynamodb.AttributeValue{}).SetS(list),
 	})
 
 	_, err := b.ddb.DeleteItem(input)
@@ -101,7 +101,7 @@ func (b *bot) deleteList(guild, list string) string {
 
 // getList gets a list.
 func (b *bot) getList(guild, list string) string {
-	lis, err := b.getDDB(fmt.Sprintf("%s-%s", guild, list))
+	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
 			return fmt.Sprintf("I couldn't find a list called %s", list)
@@ -136,7 +136,27 @@ func (b *bot) help() string {
 
 // listLists prints a list of lists on the server.
 func (b *bot) listLists(guild string) string {
-	return "Will eventually return a list of lists"
+	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression(fmt.Sprintf("guild = :%s", guild))
+
+	output, err := b.ddb.Query(input)
+	if err != nil {
+		fmt.Println("failed to list lists", err)
+		return failMsg
+	}
+
+	if len(output.Items) < 1 {
+		return "I couldn't find any lists for you"
+	}
+
+	resp := "I found these lists for you:"
+	for _, v := range output.Items {
+		lis := new(lists.ListtoList)
+		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
+			return failMsg
+		}
+		resp = fmt.Sprintf("%s\n%s", resp, lis)
+	}
+	return resp
 }
 
 // ping the bot.
@@ -187,7 +207,7 @@ func (b *bot) putDDB(in interface{}) (lisErr *listtoErr.ListtoError) {
 	return
 }
 
-func (b *bot) getDDB(listID string) (list *lists.ListtoList, lisErr *listtoErr.ListtoError) {
+func (b *bot) getDDB(guild, lis string) (list *lists.ListtoList, lisErr *listtoErr.ListtoError) {
 	defer func() {
 		if lisErr != nil {
 			lisErr.SetCallingMethodIfNil("getDDB")
@@ -195,7 +215,8 @@ func (b *bot) getDDB(listID string) (list *lists.ListtoList, lisErr *listtoErr.L
 	}()
 
 	input := (&dynamodb.GetItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
-		"listID": (&dynamodb.AttributeValue{}).SetS(listID),
+		"guild": (&dynamodb.AttributeValue{}).SetS(guild),
+		"list": (&dynamodb.AttributeValue{}).SetS(lis),
 	})
 
 	output, err := b.ddb.GetItem(input)
@@ -205,7 +226,7 @@ func (b *bot) getDDB(listID string) (list *lists.ListtoList, lisErr *listtoErr.L
 	}
 
 	if len(output.Item) < 1 {
-		lisErr = listtoErr.ListNotFoundError(strings.Join(strings.Split(listID,"-")[1:], "-"))
+		lisErr = listtoErr.ListNotFoundError(lis)
 		return
 	}
 
