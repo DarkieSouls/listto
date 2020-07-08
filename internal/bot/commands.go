@@ -47,7 +47,7 @@ func (b *bot) clearList(guild, list string) string {
 	lis, err := b.getDDB(fmt.Sprintf("%s-%s", guild, list))
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
-			return noList()
+			return noList(list)
 		}
 		err.LogError()
 		return failMsg
@@ -87,7 +87,7 @@ func (b *bot) createList(guild, list string) string {
 // deleteList deletes a list.
 func (b *bot) deleteList(guild, list string) string {
 	input := (&dynamodb.DeleteItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
-		"listID": (&dynamodb.AttributeValue).SetS(fmt.Sprintf("%s-%s", guild, list)),
+		"listID": (&dynamodb.AttributeValue{}).SetS(fmt.Sprintf("%s-%s", guild, list)),
 	})
 
 	_, err := b.ddb.DeleteItem(input)

@@ -43,5 +43,5 @@ func (l *ListtoList) RemoveItem(item string) {
 }
 
 func (l *ListtoList) Clear() {
-	l.List = make([]ListItem)
+	l.List = make([]ListItem, 0)
 }
