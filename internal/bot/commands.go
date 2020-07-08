@@ -46,6 +46,13 @@ func (b *bot) addToList(guild, list, arg string) *discordgo.MessageEmbed {
 		return failMsg()
 	}
 
+	dupe := "!"
+	for _, l := range lis.List {
+		if l.Value == arg {
+			dupe = ", again"
+		}
+	}
+
 	lis.AddItem(arg, time.Now().Unix())
 
 	if err := b.putDDB(lis); err != nil {
@@ -56,8 +63,10 @@ func (b *bot) addToList(guild, list, arg string) *discordgo.MessageEmbed {
 		}
 	}
 
+	ls := list + dupe
+
 	return &discordgo.MessageEmbed{
-		Description: fmt.Sprintf("I added %s to %s!", arg, list),
+		Description: fmt.Sprintf("I added %s to %s", arg, ls),
 		Color: green,
 	}
 }
