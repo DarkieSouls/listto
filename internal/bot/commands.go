@@ -195,6 +195,10 @@ func (b *bot) help() *discordgo.MessageEmbed {
 				Value: "Deletes a list\nExample: ^delete MyList",
 			},
 			{
+				Name: "get, g",
+				Value: "Gets the list\nExample: ^get MyList",
+			},
+			{
 				Name: "help, h",
 				Value: "Displays this message!\nExample: ^h",
 			},
