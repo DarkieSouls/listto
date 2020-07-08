@@ -246,10 +246,11 @@ func (b *bot) listLists(guild string) *discordgo.MessageEmbed {
 	}
 
 	return &discordgo.MessageEmbed{
-		Description: "I found these lists for you:",
+		Description: "I found these lists!",
 		Color: green,
 		Fields: []*discordgo.MessageEmbedField{
 			{
+				Name: "Your lists"
 				Value: values,
 			},
 		},
