@@ -200,7 +200,7 @@ func (b *bot) help() *discordgo.MessageEmbed {
 			},
 			{
 				Name: "get, g",
-				Value: "Gets the list\nExample: ^get MyList",
+				Value: "Gets a list\nExample: ^get MyList",
 			},
 			{
 				Name: "help, h",
