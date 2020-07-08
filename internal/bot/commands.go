@@ -15,7 +15,7 @@ import (
 
 const (
 	table = "listto_lists"
-	red = 0xDD331
+	red = 0xDD3311
 	yellow = 0xFFDD11
 	green = 0x33DD33
 	blue = 0x2255EE
@@ -161,10 +161,11 @@ func (b *bot) getList(guild, list string) *discordgo.MessageEmbed {
 	}
 
 	return &discordgo.MessageEmbed{
-		Description: fmt.Sprintf("Your list %s:", list),
+		Description: "Your list",
 		Color: green,
 		Fields: []*discordgo.MessageEmbedField{
 			{
+				Name: list,
 				Value: values,
 			},
 		},
