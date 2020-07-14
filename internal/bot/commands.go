@@ -367,6 +367,14 @@ func (b *bot) addAccessToList(guild, list string, access []string, user string, 
 
 	lis.AddAccess(access)
 
+	if err := b.putDDB(lis); err != nil {
+		err.LogError()
+		return &discordgo.MessageEmbed{
+			Description: fmt.Sprintf("I couldn't update the permissions for %s", list),
+			Color:       red,
+		}
+	}
+
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I have added those tags to allowed users on %s", list),
 		Color:       green,
