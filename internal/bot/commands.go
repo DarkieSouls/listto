@@ -350,6 +350,28 @@ func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.
 	}
 }
 
+func (b *bot) addAccessToList(guild, list string, access []string, user string, roles []string) *discordgo.MessageEmbed {
+	lis, err := b.getDDB(guild, list)
+	if err != nil {
+		if err.Code() == listtoerr.ListNotfound {
+			return noList(list)
+		}
+		err.LogError()
+		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
+	}
+
+	lis.AddAccess(access)
+
+	return &discordgo.MessageEmbed{
+		Description: fmt.Sprintf("I have added those tags to allowed users on %s", list),
+		Color:       green,
+	}
+}
+
 // randomFromList selects a random element from the list.
 func (b *bot) randomFromList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
