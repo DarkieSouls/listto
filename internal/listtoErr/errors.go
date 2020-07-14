@@ -3,16 +3,16 @@ package listtoErr
 import "fmt"
 
 const (
-	Internal = "InternalError"
-	InvalidVar = "InvalidVariable"
+	Internal     = "InternalError"
+	InvalidVar   = "InvalidVariable"
 	ListNotFound = "ListNotFound"
 )
 
 // ListtoError is the type for error handling within Listto.
 type ListtoError struct {
-	code string
+	code          string
 	callingMethod string
-	message string
+	message       string
 }
 
 // Error returns a readable description of the error.
@@ -40,7 +40,7 @@ func (e *ListtoError) Code() string {
 // ConvertError from generic error interface to ListtoError.
 func ConvertError(err error) *ListtoError {
 	return &ListtoError{
-		code: Internal,
+		code:    Internal,
 		message: err.Error(),
 	}
 }
@@ -48,7 +48,7 @@ func ConvertError(err error) *ListtoError {
 // InvalidEnvvar returns an error when an envvar is not as expected.
 func InvalidEnvvar(envvar string) *ListtoError {
 	return &ListtoError{
-		code: InvalidVar,
+		code:    InvalidVar,
 		message: fmt.Sprintf("envvar was invalid: %s", envvar),
 	}
 }
@@ -56,7 +56,7 @@ func InvalidEnvvar(envvar string) *ListtoError {
 // ListNotFoundError returns an error if a list couldn't be found.
 func ListNotFoundError(list string) *ListtoError {
 	return &ListtoError{
-		code: ListNotFound,
+		code:    ListNotFound,
 		message: fmt.Sprintf("could not find list: %s", list),
 	}
 }

@@ -18,7 +18,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	awsCfg :=aws.NewConfig().WithRegion("eu-west-2")
+	awsCfg := aws.NewConfig().WithRegion("eu-west-2")
 	sess := session.Must(session.NewSession(awsCfg))
 
 	ddb := dynamodb.New(sess)

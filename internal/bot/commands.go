@@ -14,31 +14,31 @@ import (
 )
 
 const (
-	table = "listto_lists"
-	red = 0xDD3311
+	table  = "listto_lists"
+	red    = 0xDD3311
 	yellow = 0xFFDD11
-	green = 0x33DD33
-	blue = 0x2255EE
+	green  = 0x33DD33
+	blue   = 0x2255EE
 )
 
 func failMsg() *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Description: "Oops, I had a problem doing that for you",
-		Color: red,
+		Color:       red,
 	}
 }
 
 func noList(list string) *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I couldn't find a list called %s", list),
-		Color: yellow,
+		Color:       yellow,
 	}
 }
 
 func noPerms(list string) *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("You have not been given permission to use %s", list),
-		Color: yellow,
+		Color:       yellow,
 	}
 }
 
@@ -70,7 +70,7 @@ func (b *bot) addToList(guild, list, arg, user string, roles []string) *discordg
 		err.LogError()
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I couldn't add %s to %s", arg, list),
-			Color: red,
+			Color:       red,
 		}
 	}
 
@@ -78,7 +78,7 @@ func (b *bot) addToList(guild, list, arg, user string, roles []string) *discordg
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I added %s to %s", arg, ls),
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -93,7 +93,7 @@ func (b *bot) clearList(guild, list, user string, roles []string) *discordgo.Mes
 		return failMsg()
 	}
 
-	if !lis.CanAllow(user, roles) {
+	if !lis.CanAccess(user, roles) {
 		return noPerms(list)
 	}
 
@@ -103,13 +103,13 @@ func (b *bot) clearList(guild, list, user string, roles []string) *discordgo.Mes
 		err.LogError()
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I couldn't clear %s", list),
-			Color: red,
+			Color:       red,
 		}
 	}
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I've cleared %s", list),
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -121,7 +121,7 @@ func (b *bot) createList(guild, list string) *discordgo.MessageEmbed {
 	if err == nil {
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I found another list already called %s", list),
-			Color: yellow,
+			Color:       yellow,
 		}
 	}
 	if err.Code() != listtoErr.ListNotFound {
@@ -133,24 +133,24 @@ func (b *bot) createList(guild, list string) *discordgo.MessageEmbed {
 		err.LogError()
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I couldn't create a list called %s", list),
-			Color: red,
+			Color:       red,
 		}
 	}
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("%s list created!", list),
-		Color: green,
+		Color:       green,
 	}
 }
 
 // deleteList deletes a list.
 func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.getDDB(guild, list)
-	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+	lis, aucErr := b.getDDB(guild, list)
+	if aucErr != nil {
+		if aucErr.Code() == listtoErr.ListNotFound {
 			return noList(list)
 		}
-		err.LogError()
+		aucErr.LogError()
 		return failMsg()
 	}
 
@@ -160,7 +160,7 @@ func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.Me
 
 	input := (&dynamodb.DeleteItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
 		"guild": (&dynamodb.AttributeValue{}).SetS(guild),
-		"name":(&dynamodb.AttributeValue{}).SetS(list),
+		"name":  (&dynamodb.AttributeValue{}).SetS(list),
 	})
 
 	_, err := b.ddb.DeleteItem(input)
@@ -168,13 +168,13 @@ func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.Me
 		fmt.Println("failed to delete item", err)
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I couldn't delete %s", list),
-			Color: red,
+			Color:       red,
 		}
 	}
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I have deleted %s", list),
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -200,14 +200,14 @@ func (b *bot) getList(guild, list, user string, roles []string) *discordgo.Messa
 
 	return &discordgo.MessageEmbed{
 		Description: "Your list",
-		Color: green,
+		Color:       green,
 		Fields: []*discordgo.MessageEmbedField{
 			{
-				Name: list,
+				Name:  list,
 				Value: values,
 			},
 			{
-				Name: "List entries",
+				Name:  "List entries",
 				Value: fmt.Sprintf("%d", len(lis.List)),
 			},
 		},
@@ -218,46 +218,46 @@ func (b *bot) getList(guild, list, user string, roles []string) *discordgo.Messa
 func (b *bot) help() *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Description: "Listto does some list management things! Here's what I can do so far:",
-		Color: blue,
+		Color:       blue,
 		Fields: []*discordgo.MessageEmbedField{
 			{
-				Name: "add, a",
+				Name:  "add, a",
 				Value: "Adds an item to a list, items can have spaces\nExample: ^add MyList My Item",
 			},
 			{
-				Name: "clear, cl",
+				Name:  "clear, cl",
 				Value: "Clears a list\nExample: ^clear MyList",
 			},
 			{
-				Name: "create, c",
+				Name:  "create, c",
 				Value: "Creates a new list, lists cannot contain spaces\nExample: ^create MyList",
 			},
 			{
-				Name: "delete, d",
+				Name:  "delete, d",
 				Value: "Deletes a list\nExample: ^delete MyList",
 			},
 			{
-				Name: "get, g",
+				Name:  "get, g",
 				Value: "Gets a list\nExample: ^get MyList",
 			},
 			{
-				Name: "help, h",
+				Name:  "help, h",
 				Value: "Displays this message!\nExample: ^h",
 			},
 			{
-				Name: "list, l",
+				Name:  "list, l",
 				Value: "Lists all lists on the server\nExample: ^l",
 			},
 			{
-				Name: "random, rv",
+				Name:  "random, rv",
 				Value: "Selects a random item from a list\nExample: ^rv MyList",
 			},
 			{
-				Name: "remove, r",
+				Name:  "remove, r",
 				Value: "Removes an item from a list\nExample: ^remove MyList MyItem",
 			},
 			{
-				Name: "sort, s",
+				Name:  "sort, s",
 				Value: "sorts a list by either name or time\nExample ^sort MyList name",
 			},
 		},
@@ -278,7 +278,7 @@ func (b *bot) listLists(guild, user string, roles []string) *discordgo.MessageEm
 	if len(output.Items) < 1 {
 		return &discordgo.MessageEmbed{
 			Description: "I couldn't find any lists for you",
-			Color: yellow,
+			Color:       yellow,
 		}
 	}
 
@@ -288,17 +288,17 @@ func (b *bot) listLists(guild, user string, roles []string) *discordgo.MessageEm
 		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
 			return failMsg()
 		}
-		if lis.CanAccess(user, role) {
+		if lis.CanAccess(user, roles) {
 			values = fmt.Sprintf("%s\n%s", values, lis.Name)
 		}
 	}
 
 	return &discordgo.MessageEmbed{
 		Description: "I found these lists!",
-		Color: green,
+		Color:       green,
 		Fields: []*discordgo.MessageEmbedField{
 			{
-				Name: "Your lists",
+				Name:  "Your lists",
 				Value: values,
 			},
 		},
@@ -309,7 +309,7 @@ func (b *bot) listLists(guild, user string, roles []string) *discordgo.MessageEm
 func (b *bot) ping() *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Description: "pong",
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -324,7 +324,7 @@ func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.
 	if err == nil {
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I found another list already called %s", list),
-			Color: yellow,
+			Color:       yellow,
 		}
 	}
 	if err.Code() != listtoErr.ListNotFound {
@@ -336,13 +336,13 @@ func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.
 		err.LogError()
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I couldn't create a list called %s", list),
-			Color: red,
+			Color:       red,
 		}
 	}
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I created %s for you, but privacy currently doesn't do anything", list),
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -365,7 +365,7 @@ func (b *bot) randomFromList(guild, list, user string, roles []string) *discordg
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("A random element from %s is %s", list, random),
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -393,7 +393,7 @@ func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *dis
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I have removed %s from %s", arg, list),
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -416,7 +416,7 @@ func (b *bot) sortList(guild, list, arg, user string, roles []string) *discordgo
 	if sort != "name" && sort != "time" {
 		return &discordgo.MessageEmbed{
 			Description: "Sorry! I only sort by \"name\" or \"time\"!",
-			Color: yellow,
+			Color:       yellow,
 		}
 	}
 
@@ -429,7 +429,7 @@ func (b *bot) sortList(guild, list, arg, user string, roles []string) *discordgo
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I have sorted %s by %s!", list, arg),
-		Color: green,
+		Color:       green,
 	}
 }
 
@@ -459,7 +459,7 @@ func (b *bot) getDDB(guild, lis string) (list *lists.ListtoList, lisErr *listtoE
 
 	input := (&dynamodb.GetItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
 		"guild": (&dynamodb.AttributeValue{}).SetS(guild),
-		"name": (&dynamodb.AttributeValue{}).SetS(lis),
+		"name":  (&dynamodb.AttributeValue{}).SetS(lis),
 	})
 
 	output, err := b.ddb.GetItem(input)

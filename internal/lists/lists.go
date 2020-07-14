@@ -8,24 +8,24 @@ import (
 
 // ListtoList defines the list object that holds all needed data for each list
 type ListtoList struct {
-	Guild string `json:"guild"`
-	Name string `json:"name"`
-	Private bool `json:"private"`
-	Access []string `json:"access"`
-	List []ListItem `json:"list"`
+	Guild   string     `json:"guild"`
+	Name    string     `json:"name"`
+	Private bool       `json:"private"`
+	Access  []string   `json:"access"`
+	List    []ListItem `json:"list"`
 }
 
 // ListItem represents a single value in a list.
 type ListItem struct {
-	Value string `json:"value"`
-	TimeAdded int64 `json:"timeAdded"`
+	Value     string `json:"value"`
+	TimeAdded int64  `json:"timeAdded"`
 }
 
 // NewList returns a new ListtoList object.
 func NewList(guild, name string, private bool) *ListtoList {
 	return &ListtoList{
-		Guild: guild,
-		Name: name,
+		Guild:   guild,
+		Name:    name,
 		Private: private,
 	}
 }
@@ -92,7 +92,7 @@ func (l *ListtoList) AddAccess(access []string) {
 
 // CanAccess returns if the caller can access the ListtoList.
 func (l *ListtoList) CanAccess(user string, roles []string) bool {
-	for _, a := rane l.Access {
+	for _, a := range l.Access {
 		if a == user {
 			return true
 		}

@@ -9,7 +9,7 @@ import (
 
 // Config contains the configuration of the bot.
 type Config struct {
-	token string
+	token  string
 	prefix string
 }
 

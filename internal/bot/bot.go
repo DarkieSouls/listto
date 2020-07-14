@@ -12,17 +12,17 @@ import (
 
 // bot holds all the info that needs to be passed around the bot.
 type bot struct {
-	dgo *discordgo.Session
+	dgo   *discordgo.Session
 	botID string
-	conf *config.Config
-	ddb *dynamodb.DynamoDB
+	conf  *config.Config
+	ddb   *dynamodb.DynamoDB
 }
 
 // New creates a new bot instance.
 func New(conf *config.Config, ddb *dynamodb.DynamoDB) *bot {
 	return &bot{
 		conf: conf,
-		ddb: ddb,
+		ddb:  ddb,
 	}
 }
 
@@ -65,7 +65,8 @@ func (b *bot) Start() {
 // messageHandler returns a handlerfunc for messages.
 func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		var list, arg string
+		var list, arg, user string
+		var roles []string
 
 		if m.Author.ID == b.botID {
 			return
@@ -90,8 +91,8 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 			}
 		}
 		guild := m.GuildID
-		user := m.Member.User.ID
-		roles := m.Member.Roles
+		user = m.Author.ID
+		roles = m.Member.Roles
 
 		var resp *discordgo.MessageEmbed
 
@@ -116,13 +117,13 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		case "createprivate", "cp":
 			var access []string
 
-			if len(m.MentionRoles) != nil {
+			if len(m.MentionRoles) != 0 {
 				for _, r := range m.MentionRoles {
 					access = append(access, r)
 				}
 			}
 
-			if len(m.Mentions) != nil {
+			if len(m.Mentions) != 0 {
 				for _, u := range m.Mentions {
 					access = append(access, u.ID)
 				}
