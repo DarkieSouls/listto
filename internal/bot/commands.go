@@ -198,6 +198,10 @@ func (b *bot) getList(guild, list, user string, roles []string) *discordgo.Messa
 		values = fmt.Sprintf("%s\n%s", values, l.Value)
 	}
 
+	if values == "" {
+		values = "This list is empty!"
+	}
+
 	return &discordgo.MessageEmbed{
 		Description: "Your list",
 		Color:       green,
