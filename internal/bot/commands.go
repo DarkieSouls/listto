@@ -219,52 +219,84 @@ func (b *bot) getList(guild, list, user string, roles []string) *discordgo.Messa
 }
 
 // help prints how to use the bot.
-func (b *bot) help() *discordgo.MessageEmbed {
-	return &discordgo.MessageEmbed{
-		Description: "Listto does some list management things! Here's what I can do so far:",
-		Color:       blue,
-		Fields: []*discordgo.MessageEmbedField{
-			{
-				Name:  "add, a",
-				Value: "Adds an item to a list, items can have spaces\nExample: ^add MyList My Item",
+func (b *bot) help(arg string) *discordgo.MessageEmbed {
+	p := b.Config().Prefix()
+
+	switch strings.ToLower(arg) {
+	case "lists":
+		return &discordgo.MessageEmbed{
+			Description: "Here are some commands involving lists:",
+			Color:       blue,
+			Fields: []*discordgo.MessageEmbedField{
+				{
+					Name:  "clear, cl",
+					Value: fmt.Sprintf("Clears a list\n__Example__:\n%sclear MyList", p),
+				},
+				{
+					Name:  "create, c",
+					Value: fmt.Sprintf("Creates a new list. Lists cannot contain spaces\n__Example__:\n%screate MyList", p),
+				},
+				{
+					Name: "createprivate, cp",
+					Value: fmt.Sprintf("Creates a new private list. You can specify allowed users and roles after the list name. Will default to just you if left blank"+
+						"\n__Examples__:\n%screateprivate MyList @UserOne\n%scp MyList @MyRole", p, p),
+				},
+				{
+					Name:  "addtoprivate, ap",
+					Value: fmt.Sprintf("Adds the specified roles or users to a private list\n__Example__:\n%saddtoprivate MyList @UserOne", p),
+				},
+				{
+					Name:  "delete, d",
+					Value: fmt.Sprintf("Deletes a list\n__Example__:\n%sdelete MyList", p),
+				},
+				{
+					Name:  "get, g",
+					Value: fmt.Sprintf("Gets a list\n__Example__:\n%sget MyList", p),
+				},
+				{
+					Name:  "sort, s",
+					Value: fmt.Sprintf("Sorts a list by either name or time\n__Example__\n%ssort MyList name", p),
+				},
 			},
-			{
-				Name:  "clear, cl",
-				Value: "Clears a list\nExample: ^clear MyList",
+		}
+	case "items":
+		return &discordgo.MessageEmbed{
+			Description: "Here are some commands involving list items:",
+			Color:       blue,
+			Fields: []*discordgo.MessageEmbedField{
+				{
+					Name:  "add, a",
+					Value: fmt.Sprintf("Adds an item to a list, items can have spaces\n__Example__:\n%sadd MyList My Item", p),
+				},
+				{
+					Name:  "random, rv",
+					Value: fmt.Sprintf("Selects a random item from a list\n__Example__:\n%srv MyList", p),
+				},
+				{
+					Name:  "remove, r",
+					Value: fmt.Sprintf("Removes an item from a list\n__Example__:\n%sremove MyList MyItem", p),
+				},
 			},
-			{
-				Name:  "create, c",
-				Value: "Creates a new list, lists cannot contain spaces\nExample: ^create MyList",
+		}
+	default:
+		return &discordgo.MessageEmbed{
+			Description: "Listto does some list management things! Here's some generic commands:",
+			Color:       blue,
+			Fields: []*discordgo.MessageEmbedField{
+				{
+					Name:  "help, h",
+					Value: fmt.Sprintf("Displays a help message!\nCan accept arguments of lists and items\n__Examples__:\n%shelp\n%sh lists", p, p),
+				},
+				{
+					Name:  "list, l",
+					Value: fmt.Sprintf("Lists all lists on the server\n__Example__:\n%sl", p),
+				},
+				{
+					Name:  "ping",
+					Value: fmt.Sprintf("Check if I'm alive\n__Example__:\n%sping", p),
+				},
 			},
-			{
-				Name:  "delete, d",
-				Value: "Deletes a list\nExample: ^delete MyList",
-			},
-			{
-				Name:  "get, g",
-				Value: "Gets a list\nExample: ^get MyList",
-			},
-			{
-				Name:  "help, h",
-				Value: "Displays this message!\nExample: ^h",
-			},
-			{
-				Name:  "list, l",
-				Value: "Lists all lists on the server\nExample: ^l",
-			},
-			{
-				Name:  "random, rv",
-				Value: "Selects a random item from a list\nExample: ^rv MyList",
-			},
-			{
-				Name:  "remove, r",
-				Value: "Removes an item from a list\nExample: ^remove MyList MyItem",
-			},
-			{
-				Name:  "sort, s",
-				Value: "sorts a list by either name or time\nExample ^sort MyList name",
-			},
-		},
+		}
 	}
 }
 
