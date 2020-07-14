@@ -92,7 +92,7 @@ func (l *ListtoList) AddAccess(access []string) {
 
 // CanAccess returns if the caller can access the ListtoList.
 func (l *ListtoList) CanAccess(user string, roles []string) bool {
-	if !l.private {
+	if !l.Private {
 		return true
 	}
 
