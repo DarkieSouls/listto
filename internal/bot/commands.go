@@ -350,10 +350,11 @@ func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.
 	}
 }
 
+// addAccessToList adds the supplied users and roles to the allowed users on a list.
 func (b *bot) addAccessToList(guild, list string, access []string, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoerr.ListNotfound {
+		if err.Code() == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
