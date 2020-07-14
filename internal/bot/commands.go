@@ -345,7 +345,7 @@ func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.
 	}
 
 	return &discordgo.MessageEmbed{
-		Description: fmt.Sprintf("I created %s for you, but privacy currently doesn't do anything", list),
+		Description: fmt.Sprintf("I created a private list called %s for you", list),
 		Color:       green,
 	}
 }
