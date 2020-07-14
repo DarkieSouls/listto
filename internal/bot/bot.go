@@ -129,9 +129,7 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 				}
 			}
 
-			if len(access) == 0 {
-				access = append(access, m.Author.ID)
-			}
+			access = append(access, m.Author.ID)
 
 			resp = b.createPrivateList(guild, list, access)
 		case "random", "rv":
