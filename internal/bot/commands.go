@@ -35,8 +35,15 @@ func noList(list string) *discordgo.MessageEmbed {
 	}
 }
 
+func noPerms(list string) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Description: fmt.Sprintf("You have not been given permission to use %s", list),
+		Color: yellow,
+	}
+}
+
 // addToList adds a value to a list.
-func (b *bot) addToList(guild, list, arg string) *discordgo.MessageEmbed {
+func (b *bot) addToList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
@@ -44,6 +51,10 @@ func (b *bot) addToList(guild, list, arg string) *discordgo.MessageEmbed {
 		}
 		err.LogError()
 		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
 	}
 
 	dupe := "!"
@@ -72,7 +83,7 @@ func (b *bot) addToList(guild, list, arg string) *discordgo.MessageEmbed {
 }
 
 // clearList wipes a list of it's values.
-func (b *bot) clearList(guild, list string) *discordgo.MessageEmbed {
+func (b *bot) clearList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
@@ -80,6 +91,10 @@ func (b *bot) clearList(guild, list string) *discordgo.MessageEmbed {
 		}
 		err.LogError()
 		return failMsg()
+	}
+
+	if !lis.CanAllow(user, roles) {
+		return noPerms(list)
 	}
 
 	lis.Clear()
@@ -129,7 +144,20 @@ func (b *bot) createList(guild, list string) *discordgo.MessageEmbed {
 }
 
 // deleteList deletes a list.
-func (b *bot) deleteList(guild, list string) *discordgo.MessageEmbed {
+func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
+	lis, err := b.getDDB(guild, list)
+	if err != nil {
+		if err.Code() == listtoErr.ListNotFound {
+			return noList(list)
+		}
+		err.LogError()
+		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
+	}
+
 	input := (&dynamodb.DeleteItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
 		"guild": (&dynamodb.AttributeValue{}).SetS(guild),
 		"name":(&dynamodb.AttributeValue{}).SetS(list),
@@ -151,17 +179,18 @@ func (b *bot) deleteList(guild, list string) *discordgo.MessageEmbed {
 }
 
 // getList gets a list.
-func (b *bot) getList(guild, list string) *discordgo.MessageEmbed {
+func (b *bot) getList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
-			return &discordgo.MessageEmbed{
-				Description: fmt.Sprintf("I couldn't find a list called %s", list),
-				Color: yellow,
-			}
+			return noList(list)
 		}
 		err.LogError()
 		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
 	}
 
 	var values string
@@ -236,7 +265,7 @@ func (b *bot) help() *discordgo.MessageEmbed {
 }
 
 // listLists prints a list of lists on the server.
-func (b *bot) listLists(guild string) *discordgo.MessageEmbed {
+func (b *bot) listLists(guild, user string, roles []string) *discordgo.MessageEmbed {
 	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1").
 		SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{":v1": (&dynamodb.AttributeValue{}).SetS(guild)})
 
@@ -259,7 +288,9 @@ func (b *bot) listLists(guild string) *discordgo.MessageEmbed {
 		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
 			return failMsg()
 		}
-		values = fmt.Sprintf("%s\n%s", values, lis.Name)
+		if lis.CanAccess(user, role) {
+			values = fmt.Sprintf("%s\n%s", values, lis.Name)
+		}
 	}
 
 	return &discordgo.MessageEmbed{
@@ -283,12 +314,14 @@ func (b *bot) ping() *discordgo.MessageEmbed {
 }
 
 // createPrivateList creates a list with limited access.
-func (b *bot) createPrivateList(guild, list, arg string) *discordgo.MessageEmbed {
+func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.MessageEmbed {
 	// todo: make this actually have an effect
 	lis := lists.NewList(guild, list, true)
 
+	lis.AddAccess(access)
+
 	_, err := b.getDDB(guild, list)
-	if err != nil {
+	if err == nil {
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I found another list already called %s", list),
 			Color: yellow,
@@ -314,7 +347,7 @@ func (b *bot) createPrivateList(guild, list, arg string) *discordgo.MessageEmbed
 }
 
 // randomFromList selects a random element from the list.
-func (b *bot) randomFromList(guild, list string) *discordgo.MessageEmbed {
+func (b *bot) randomFromList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
@@ -322,6 +355,10 @@ func (b *bot) randomFromList(guild, list string) *discordgo.MessageEmbed {
 		}
 		err.LogError()
 		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
 	}
 
 	random := lis.SelectRandom()
@@ -333,7 +370,7 @@ func (b *bot) randomFromList(guild, list string) *discordgo.MessageEmbed {
 }
 
 // removeFromList removes an item from the list.
-func (b *bot) removeFromList(guild, list, arg string) *discordgo.MessageEmbed {
+func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
@@ -341,6 +378,10 @@ func (b *bot) removeFromList(guild, list, arg string) *discordgo.MessageEmbed {
 		}
 		err.LogError()
 		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
 	}
 
 	lis.RemoveItem(arg)
@@ -357,15 +398,7 @@ func (b *bot) removeFromList(guild, list, arg string) *discordgo.MessageEmbed {
 }
 
 // sortList sorts the list.
-func (b *bot) sortList(guild, list, arg string) *discordgo.MessageEmbed {
-	sort := strings.ToLower(arg)
-	if sort != "name" && sort != "time" {
-		return &discordgo.MessageEmbed{
-			Description: "Sorry! I only sort by \"name\" or \"time\"!",
-			Color: yellow,
-		}
-	}
-
+func (b *bot) sortList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
@@ -373,6 +406,18 @@ func (b *bot) sortList(guild, list, arg string) *discordgo.MessageEmbed {
 		}
 		err.LogError()
 		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
+	}
+
+	sort := strings.ToLower(arg)
+	if sort != "name" && sort != "time" {
+		return &discordgo.MessageEmbed{
+			Description: "Sorry! I only sort by \"name\" or \"time\"!",
+			Color: yellow,
+		}
 	}
 
 	lis.Sort(sort)

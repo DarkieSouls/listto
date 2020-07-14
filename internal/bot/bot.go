@@ -90,35 +90,55 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 			}
 		}
 		guild := m.GuildID
+		user := m.Member.User.ID
+		roles := m.Member.Roles
 
 		var resp *discordgo.MessageEmbed
 
 		command := strings.ToLower(message[0])
 		switch command {
 		case "add", "a":
-			resp = b.addToList(guild, list, arg)
+			resp = b.addToList(guild, list, arg, user, roles)
 		case "clear", "cl":
-			resp = b.clearList(guild, list)
+			resp = b.clearList(guild, list, user, roles)
 		case "create", "c":
 			resp = b.createList(guild, list)
 		case "delete", "d":
-			resp = b.deleteList(guild, list)
+			resp = b.deleteList(guild, list, user, roles)
 		case "get", "g":
-			resp = b.getList(guild, list)
+			resp = b.getList(guild, list, user, roles)
 		case "help", "h":
 			resp = b.help()
 		case "list", "l":
-			resp = b.listLists(guild)
+			resp = b.listLists(guild, user, roles)
 		case "ping":
 			resp = b.ping()
-		case "privatecreate", "pc":
-			resp = b.createPrivateList(guild, list, arg)
+		case "createprivate", "cp":
+			var access []string
+
+			if len(m.MentionRoles) != nil {
+				for _, r := range m.MentionRoles {
+					access = append(access, r)
+				}
+			}
+
+			if len(m.Mentions) != nil {
+				for _, u := range m.Mentions {
+					access = append(access, u.ID)
+				}
+			}
+
+			if len(access) == 0 {
+				access = append(access, m.Author.ID)
+			}
+
+			resp = b.createPrivateList(guild, list, access)
 		case "random", "rv":
-			resp = b.randomFromList(guild, list)
+			resp = b.randomFromList(guild, list, user, roles)
 		case "remove", "r":
-			resp = b.removeFromList(guild, list, arg)
+			resp = b.removeFromList(guild, list, arg, user, roles)
 		case "sort", "s":
-			resp = b.sortList(guild, list, arg)
+			resp = b.sortList(guild, list, arg, user, roles)
 		}
 
 		if resp != nil {

@@ -11,6 +11,7 @@ type ListtoList struct {
 	Guild string `json:"guild"`
 	Name string `json:"name"`
 	Private bool `json:"private"`
+	Access []string `json:"access"`
 	List []ListItem `json:"list"`
 }
 
@@ -20,6 +21,7 @@ type ListItem struct {
 	TimeAdded int64 `json:"timeAdded"`
 }
 
+// NewList returns a new ListtoList object.
 func NewList(guild, name string, private bool) *ListtoList {
 	return &ListtoList{
 		Guild: guild,
@@ -28,10 +30,12 @@ func NewList(guild, name string, private bool) *ListtoList {
 	}
 }
 
+// AddItem to a ListtoList.
 func (l *ListtoList) AddItem(item string, timeAdded int64) {
 	l.List = append(l.List, ListItem{Value: item, TimeAdded: timeAdded})
 }
 
+// RemoveItem from a ListtoList.
 func (l *ListtoList) RemoveItem(item string) {
 	for i, v := range l.List {
 		if v.Value == item {
@@ -41,16 +45,19 @@ func (l *ListtoList) RemoveItem(item string) {
 	}
 }
 
+// Clear a ListtoList of all Items.
 func (l *ListtoList) Clear() {
 	l.List = make([]ListItem, 0)
 }
 
+// SelectRandom Item from a ListtoList.
 func (l *ListtoList) SelectRandom() string {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	i := r.Intn(len(l.List))
 	return l.List[i].Value
 }
 
+// Sort a ListtoList by a value.
 func (l *ListtoList) Sort(sorter string) {
 	if sorter == "name" {
 		sort.Slice(l.List, func(i, j int) bool {
@@ -61,4 +68,41 @@ func (l *ListtoList) Sort(sorter string) {
 			return l.List[i].TimeAdded < l.List[j].TimeAdded
 		})
 	}
+}
+
+// AddAccess to certain perties to a private ListtoList.
+func (l *ListtoList) AddAccess(access []string) {
+	if !l.Private {
+		return
+	}
+
+	for _, a := range access {
+		var dupe bool
+		for _, v := range l.Access {
+			if a == v {
+				dupe = true
+				break
+			}
+		}
+		if !dupe {
+			l.Access = append(l.Access, a)
+		}
+	}
+}
+
+// CanAccess returns if the caller can access the ListtoList.
+func (l *ListtoList) CanAccess(user string, roles []string) bool {
+	for _, a := rane l.Access {
+		if a == user {
+			return true
+		}
+
+		for _, r := range roles {
+			if a == r {
+				return true
+			}
+		}
+	}
+
+	return false
 }
