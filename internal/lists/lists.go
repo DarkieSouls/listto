@@ -3,6 +3,7 @@ package lists
 import (
 	"math/rand"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (l *ListtoList) SelectRandom() string {
 func (l *ListtoList) Sort(sorter string) {
 	if sorter == "name" {
 		sort.Slice(l.List, func(i, j int) bool {
-			return l.List[i].Value < l.List[j].Value
+			return strings.ToLower(l.List[i].Value) < strings.ToLower(l.List[j].Value)
 		})
 	} else if sorter == "time" {
 		sort.Slice(l.List, func(i, j int) bool {
