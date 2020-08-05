@@ -36,14 +36,51 @@ func (l *ListtoList) AddItem(item string, timeAdded int64) {
 	l.List = append(l.List, ListItem{Value: item, TimeAdded: timeAdded})
 }
 
+// EditItem in a ListtoList.
+func (l *ListtoList) EditItem(old, update string) string {
+	for _, v := range l.List {
+		if v.Value == old {
+			v.Value = update
+			return "success"
+		}
+	}
+
+	return ""
+}
+
+func (l *ListtoList) EditIndex(index int, value string) string {
+	if index > len(l.List) {
+		return ""
+	}
+
+	name := l.List[index].Value
+	l.List[index].Value = value
+
+	return name
+}
+
 // RemoveItem from a ListtoList.
-func (l *ListtoList) RemoveItem(item string) {
+func (l *ListtoList) RemoveItem(item string) string {
 	for i, v := range l.List {
 		if v.Value == item {
 			l.List = append(l.List[:i], l.List[i+1:]...)
-			break
+			return "success"
 		}
 	}
+
+	return ""
+}
+
+// RemoveIndex item from ListtoList.
+func (l *ListtoList) RemoveIndex(index int) string {
+	if index > len(l.List) {
+		return ""
+	}
+
+	name := l.List[index].Value
+	l.List = append(l.List[:index], l.List[index+1:]...)
+
+	return name
 }
 
 // Clear a ListtoList of all Items.

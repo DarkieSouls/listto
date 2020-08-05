@@ -106,6 +106,8 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 			resp = b.createList(guild, list)
 		case "delete", "d":
 			resp = b.deleteList(guild, list, user, roles)
+		case "edit", "e":
+			resp = b.editInList(guild, list, arg, user, roles)
 		case "get", "g":
 			resp = b.getList(guild, list, user, roles)
 		case "help", "h":

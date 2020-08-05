@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -174,6 +175,70 @@ func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.Me
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I have deleted %s", list),
+		Color:       green,
+	}
+}
+
+func (b *bot) editInList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
+	lis, err := b.getDDB(guild, list)
+	if err != nil {
+		if err.Code() == listtoErr.ListNotFound {
+			return noList(list)
+		}
+		err.LogError()
+		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
+	}
+
+	var updated string
+
+	args := strings.Split(arg, `" "`)
+	switch len(args) {
+	case 1:
+		args = strings.Split(arg, " ")
+		i, err := strconv.Atoi(args[0])
+		if err != nil {
+			return &discordgo.MessageEmbed{
+				Description: "The first argument needs to be a number or existing value!",
+				Color:       yellow,
+			}
+		}
+
+		newVal := strings.Join(args[1:], " ")
+
+		updated = lis.EditIndex(i, newVal)
+		if updated == "" {
+			return &discordgo.MessageEmbed{
+				Description: fmt.Sprintf("%s doesn't seem to have that many items!", list),
+				Color:       yellow,
+			}
+		}
+	case 2:
+		updated = args[0]
+		s := lis.EditItem(args[0], args[1])
+		if s == "" {
+			return &discordgo.MessageEmbed{
+				Description: fmt.Sprintf("%s doesn't seem to contain $s", list, args[0]),
+				Color:       yellow,
+			}
+		}
+	default:
+		return &discordgo.MessageEmbed{
+			Description: "You can only specify two arguments",
+			Color:       yellow,
+		}
+	}
+
+	if err := b.putDDB(lis); err != nil {
+		err.LogError()
+		return failMsg()
+	}
+
+	return &discordgo.MessageEmbed{
+		Description: fmt.Sprintf("I have updated %s in %s", updated, list),
 		Color:       green,
 	}
 }
@@ -438,12 +503,12 @@ func (b *bot) randomFromList(guild, list, user string, roles []string) *discordg
 
 // removeFromList removes an item from the list.
 func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.getDDB(guild, list)
-	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+	lis, lisErr := b.getDDB(guild, list)
+	if lisErr != nil {
+		if lisErr.Code() == listtoErr.ListNotFound {
 			return noList(list)
 		}
-		err.LogError()
+		lisErr.LogError()
 		return failMsg()
 	}
 
@@ -451,10 +516,27 @@ func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *dis
 		return noPerms(list)
 	}
 
-	lis.RemoveItem(arg)
+	i, err := strconv.Atoi(arg)
+	if err != nil {
+		s := lis.RemoveItem(arg)
+		if s == "" {
+			return &discordgo.MessageEmbed{
+				Description: fmt.Sprintf("%s doesn't seem to contain $s", list, arg),
+				Color:       yellow,
+			}
+		}
+	} else {
+		arg = lis.RemoveIndex(i)
+		if arg == "" {
+			return &discordgo.MessageEmbed{
+				Description: fmt.Sprintf("%s doesn't seem to have that many items!", list),
+				Color:       yellow,
+			}
+		}
+	}
 
-	if err := b.putDDB(lis); err != nil {
-		err.LogError()
+	if lisErr := b.putDDB(lis); err != nil {
+		lisErr.LogError()
 		return failMsg()
 	}
 
