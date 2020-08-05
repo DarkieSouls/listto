@@ -334,12 +334,19 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 					Value: fmt.Sprintf("Adds an item to a list, items can have spaces\n__Example__:\n%sadd MyList My Item", p),
 				},
 				{
+					Name: "edit, e",
+					Value: fmt.Sprintf("Edit a value in a list. You can specify the item to edit either by it's index, or it's value. If you search by index, then note that 0 is the first item in the list,"+
+						" and the new value should not be surrounded by \"s. If you search by value, then both values need to be surrounded with \"s"+
+						"\n__Example__:\n%sedit MyList 0 My new and improved item\n%se MyList \"My Old Item\" \"My New Item\"", p, p),
+				},
+				{
 					Name:  "random, rv",
 					Value: fmt.Sprintf("Selects a random item from a list\n__Example__:\n%srv MyList", p),
 				},
 				{
 					Name:  "remove, r",
-					Value: fmt.Sprintf("Removes an item from a list\n__Example__:\n%sremove MyList MyItem", p),
+					Value: fmt.Sprintf("Removes an item from a list. You can either type the item in full, or the item index"+
+						"\n__Example__:\n%sremove MyList MyItem\n%sr MyList 0", p, p),
 				},
 			},
 		}
