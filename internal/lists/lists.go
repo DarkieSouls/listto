@@ -38,9 +38,9 @@ func (l *ListtoList) AddItem(item string, timeAdded int64) {
 
 // EditItem in a ListtoList.
 func (l *ListtoList) EditItem(old, update string) string {
-	for _, v := range l.List {
+	for i, v := range l.List {
 		if v.Value == old {
-			v.Value = update
+			l.List[i].Value = update
 			return "success"
 		}
 	}
