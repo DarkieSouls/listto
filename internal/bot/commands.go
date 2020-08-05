@@ -217,11 +217,11 @@ func (b *bot) editInList(guild, list, arg, user string, roles []string) *discord
 			}
 		}
 	case 2:
-		updated = args[0]
-		s := lis.EditItem(args[0], args[1])
+		updated = strings.TrimPrefix(args[0], "\"")
+		s := lis.EditItem(updated, strings.TrimSuffix(args[1], "\""))
 		if s == "" {
 			return &discordgo.MessageEmbed{
-				Description: fmt.Sprintf("%s doesn't seem to contain $s", list, args[0]),
+				Description: fmt.Sprintf("%s doesn't seem to contain $s", list, updated),
 				Color:       yellow,
 			}
 		}
