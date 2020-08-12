@@ -59,6 +59,8 @@ func (b *bot) Start() {
 		return
 	}
 
+	b.dgo.UpdateStatus(0, fmt.Sprintf("with %shelp", b.conf.Prefix()))
+
 	fmt.Println("The bot has awoken...")
 }
 
