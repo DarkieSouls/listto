@@ -258,8 +258,16 @@ func (b *bot) getList(guild, list, user string, roles []string) *discordgo.Messa
 		return noPerms(list)
 	}
 
+	var fields []*discordgo.MessageEmbedField
+
 	var values string
 	for _, l := range lis.List {
+		if len(values)+len(l.Value) > 1024 {
+			fields = append(fields, &discordgo.MessageEmbedField{Name: list, Value: values})
+			list = l.Value
+			values = ""
+			continue
+		}
 		values = fmt.Sprintf("%s\n%s", values, l.Value)
 	}
 
@@ -267,19 +275,14 @@ func (b *bot) getList(guild, list, user string, roles []string) *discordgo.Messa
 		values = "This list is empty!"
 	}
 
+	fields = append(fields, &discordgo.MessageEmbedField{Name: list, Value: values})
+
+	fields = append(fields, &discordgo.MessageEmbedField{Name: "List Entries", Value: fmt.Sprintf("%d", len(lis.List))})
+
 	return &discordgo.MessageEmbed{
 		Description: "Your list",
 		Color:       green,
-		Fields: []*discordgo.MessageEmbedField{
-			{
-				Name:  list,
-				Value: values,
-			},
-			{
-				Name:  "List entries",
-				Value: fmt.Sprintf("%d", len(lis.List)),
-			},
-		},
+		Fields:      fields,
 	}
 }
 
@@ -344,7 +347,7 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 					Value: fmt.Sprintf("Selects a random item from a list\n__Example__:\n%srv MyList", p),
 				},
 				{
-					Name:  "remove, r",
+					Name: "remove, r",
 					Value: fmt.Sprintf("Removes an item from a list. You can either type the item in full, or the item index"+
 						"\n__Example__:\n%sremove MyList MyItem\n%sr MyList 0", p, p),
 				},
