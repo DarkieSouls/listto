@@ -365,7 +365,7 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 						"\n__Example__:\n%sedit MyList 0 My new and improved item\n%se MyList \"My Old Item\" \"My New Item\"", p, p),
 				},
 				{
-					Name "get, g",
+					Name: "get, g",
 					Value: fmt.Sprintf("Get an item from a list. You specify the item by using the index as specified above."+
 						"\n__Example__:\n%sg MyList 0", p),
 				},
