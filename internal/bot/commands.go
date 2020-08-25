@@ -360,9 +360,14 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 				},
 				{
 					Name: "edit, e",
-					Value: fmt.Sprintf("Edit a value in a list. You can specify the item to edit either by it's index, or it's value. If you search by index, then note that 0 is the first item in the list,"+
+					Value: fmt.Sprintf("Edit an item in a list. You can specify the item to edit either by it's index, or it's value. If you search by index, then note that 0 is the first item in the list,"+
 						" and the new value should not be surrounded by \"s. If you search by value, then both values need to be surrounded with \"s"+
 						"\n__Example__:\n%sedit MyList 0 My new and improved item\n%se MyList \"My Old Item\" \"My New Item\"", p, p),
+				},
+				{
+					Name "get, g",
+					Value: fmt.Sprintf("Get an item from a list. You specify the item by using the index as specified above."+
+						"\n__Example__:\n%sg MyList 0", p),
 				},
 				{
 					Name:  "random, rv",
