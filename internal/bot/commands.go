@@ -261,7 +261,7 @@ func (b *bot) getList(guild, list, arg, user string, roles []string) *discordgo.
 	var fields []*discordgo.MessageEmbedField
 
 	var values, desc string
-	if arg != "" {
+	if arg == "" {
 		desc = "Your List"
 		for _, l := range lis.List {
 			if len(values)+len(l.Value) > 1024 {
