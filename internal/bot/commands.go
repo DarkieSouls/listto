@@ -244,7 +244,7 @@ func (b *bot) editInList(guild, list, arg, user string, roles []string) *discord
 }
 
 // getList gets a list.
-func (b *bot) getList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
+func (b *bot) getList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
 		if err.Code() == listtoErr.ListNotFound {
@@ -260,27 +260,49 @@ func (b *bot) getList(guild, list, user string, roles []string) *discordgo.Messa
 
 	var fields []*discordgo.MessageEmbedField
 
-	var values string
-	for _, l := range lis.List {
-		if len(values)+len(l.Value) > 1024 {
-			fields = append(fields, &discordgo.MessageEmbedField{Name: list, Value: values})
-			list = l.Value
-			values = ""
-			continue
+	var values, desc string
+	if arg != "" {
+		desc = "Your List"
+		for _, l := range lis.List {
+			if len(values)+len(l.Value) > 1024 {
+				fields = append(fields, &discordgo.MessageEmbedField{Name: list, Value: values})
+				list = l.Value
+				values = ""
+				continue
+			}
+			values = fmt.Sprintf("%s\n%s", values, l.Value)
 		}
-		values = fmt.Sprintf("%s\n%s", values, l.Value)
+
+		if values == "" {
+			values = "This list is empty!"
+		}
+
+		fields = append(fields, &discordgo.MessageEmbedField{Name: list, Value: values})
+
+		fields = append(fields, &discordgo.MessageEmbedField{Name: "List Entries", Value: fmt.Sprintf("%d", len(lis.List))})
+	} else {
+		desc = "Your Item"
+		i, err := strconv.Atoi(arg)
+		if err != nil {
+			return &discordgo.MessageEmbed{
+				Description: "The searched item needs to be a number!",
+				Color:       yellow,
+			}
+		}
+
+		values = lis.SelectItem(i)
+		if values == "" {
+			return &discordgo.MessageEmbed{
+				Description: "I couldn't find an item at that position!",
+				Color:       yellow,
+			}
+		}
+
+		fields = append(fields, &discordgo.MessageEmbedField{Name: fmt.Sprintf("Item at position %d", i), Value: values})
 	}
-
-	if values == "" {
-		values = "This list is empty!"
-	}
-
-	fields = append(fields, &discordgo.MessageEmbedField{Name: list, Value: values})
-
-	fields = append(fields, &discordgo.MessageEmbedField{Name: "List Entries", Value: fmt.Sprintf("%d", len(lis.List))})
 
 	return &discordgo.MessageEmbed{
-		Description: "Your list",
+		Description: desc,
 		Color:       green,
 		Fields:      fields,
 	}

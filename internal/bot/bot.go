@@ -111,7 +111,7 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		case "edit", "e":
 			resp = b.editInList(guild, list, arg, user, roles)
 		case "get", "g":
-			resp = b.getList(guild, list, user, roles)
+			resp = b.getList(guild, list, arg, user, roles)
 		case "help", "h":
 			resp = b.help(list)
 		case "list", "l":

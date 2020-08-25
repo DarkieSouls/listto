@@ -88,6 +88,15 @@ func (l *ListtoList) Clear() {
 	l.List = make([]ListItem, 0)
 }
 
+// SelectItem from the ListtoList.
+func (l *ListtoList) SelectItem(item int) string {
+	if len(l.List) > item {
+		return l.List[item].Value
+	}
+
+	return ""
+}
+
 // SelectRandom Item from a ListtoList.
 func (l *ListtoList) SelectRandom() string {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
