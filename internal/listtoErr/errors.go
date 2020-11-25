@@ -10,58 +10,48 @@ const (
 
 // ListtoError is the type for error handling within Listto.
 type ListtoError struct {
-	code          string
-	callingMethod string
-	message       string
+	Code          string
+	CallingMethod string
+	Message       string
 }
 
 // Error returns a readable description of the error.
 func (e *ListtoError) Error() string {
-	return e.message
+	return e.Message
 }
 
 // SetCallingMethodIfNil for the ListtoError.
 func (e *ListtoError) SetCallingMethodIfNil(method string) {
-	if e.callingMethod != "" {
-		e.callingMethod = method
+	if e.CallingMethod != "" {
+		e.CallingMethod = method
 	}
-}
-
-// CallingMethod returns the callingMethod of the ListtoError.
-func (e *ListtoError) CallingMethod() string {
-	return e.callingMethod
-}
-
-// Code returns the error code.
-func (e *ListtoError) Code() string {
-	return e.code
 }
 
 // ConvertError from generic error interface to ListtoError.
 func ConvertError(err error) *ListtoError {
 	return &ListtoError{
-		code:    Internal,
-		message: err.Error(),
+		Code:    Internal,
+		Message: err.Error(),
 	}
 }
 
 // InvalidEnvvar returns an error when an envvar is not as expected.
 func InvalidEnvvar(envvar string) *ListtoError {
 	return &ListtoError{
-		code:    InvalidVar,
-		message: fmt.Sprintf("envvar was invalid: %s", envvar),
+		Code:    InvalidVar,
+		Message: fmt.Sprintf("envvar was invalid: %s", envvar),
 	}
 }
 
 // ListNotFoundError returns an error if a list couldn't be found.
 func ListNotFoundError(list string) *ListtoError {
 	return &ListtoError{
-		code:    ListNotFound,
-		message: fmt.Sprintf("could not find list: %s", list),
+		Code:    ListNotFound,
+		Message: fmt.Sprintf("could not find list: %s", list),
 	}
 }
 
 // LogError prints the error in bot logs.
 func (e *ListtoError) LogError() {
-	fmt.Println(fmt.Sprintf("%s: %s", e.callingMethod, e.message))
+	fmt.Println(fmt.Sprintf("%s: %s", e.CallingMethod, e.Message))
 }

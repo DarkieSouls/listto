@@ -47,7 +47,7 @@ func noPerms(list string) *discordgo.MessageEmbed {
 func (b *bot) addToList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+		if err.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
@@ -87,7 +87,7 @@ func (b *bot) addToList(guild, list, arg, user string, roles []string) *discordg
 func (b *bot) clearList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+		if err.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
@@ -125,7 +125,7 @@ func (b *bot) createList(guild, list string) *discordgo.MessageEmbed {
 			Color:       yellow,
 		}
 	}
-	if err.Code() != listtoErr.ListNotFound {
+	if err.Code != listtoErr.ListNotFound {
 		err.LogError()
 		return failMsg()
 	}
@@ -148,7 +148,7 @@ func (b *bot) createList(guild, list string) *discordgo.MessageEmbed {
 func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
 	lis, aucErr := b.getDDB(guild, list)
 	if aucErr != nil {
-		if aucErr.Code() == listtoErr.ListNotFound {
+		if aucErr.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		aucErr.LogError()
@@ -164,7 +164,7 @@ func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.Me
 		"name":  (&dynamodb.AttributeValue{}).SetS(list),
 	})
 
-	_, err := b.ddb.DeleteItem(input)
+	_, err := b.DDB.DeleteItem(input)
 	if err != nil {
 		fmt.Println("failed to delete item", err)
 		return &discordgo.MessageEmbed{
@@ -182,7 +182,7 @@ func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.Me
 func (b *bot) editInList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+		if err.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
@@ -247,7 +247,7 @@ func (b *bot) editInList(guild, list, arg, user string, roles []string) *discord
 func (b *bot) getList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+		if err.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
@@ -310,7 +310,7 @@ func (b *bot) getList(guild, list, arg, user string, roles []string) *discordgo.
 
 // help prints how to use the bot.
 func (b *bot) help(arg string) *discordgo.MessageEmbed {
-	p := b.Config().Prefix()
+	p := b.Config.Prefix
 
 	switch strings.ToLower(arg) {
 	case "lists":
@@ -407,7 +407,7 @@ func (b *bot) listLists(guild, user string, roles []string) *discordgo.MessageEm
 	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1").
 		SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{":v1": (&dynamodb.AttributeValue{}).SetS(guild)})
 
-	output, err := b.ddb.Query(input)
+	output, err := b.DDB.Query(input)
 	if err != nil {
 		fmt.Println("failed to list lists", err)
 		return failMsg()
@@ -465,7 +465,7 @@ func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.
 			Color:       yellow,
 		}
 	}
-	if err.Code() != listtoErr.ListNotFound {
+	if err.Code != listtoErr.ListNotFound {
 		err.LogError()
 		return failMsg()
 	}
@@ -488,7 +488,7 @@ func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.
 func (b *bot) addAccessToList(guild, list string, access []string, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+		if err.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
@@ -519,7 +519,7 @@ func (b *bot) addAccessToList(guild, list string, access []string, user string, 
 func (b *bot) randomFromList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+		if err.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
@@ -542,7 +542,7 @@ func (b *bot) randomFromList(guild, list, user string, roles []string) *discordg
 func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, lisErr := b.getDDB(guild, list)
 	if lisErr != nil {
-		if lisErr.Code() == listtoErr.ListNotFound {
+		if lisErr.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		lisErr.LogError()
@@ -572,7 +572,7 @@ func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *dis
 		}
 	}
 
-	if lisErr := b.putDDB(lis); err != nil {
+	if lisErr := b.putDDB(lis); lisErr != nil {
 		lisErr.LogError()
 		return failMsg()
 	}
@@ -587,7 +587,7 @@ func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *dis
 func (b *bot) sortList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
 	lis, err := b.getDDB(guild, list)
 	if err != nil {
-		if err.Code() == listtoErr.ListNotFound {
+		if err.Code == listtoErr.ListNotFound {
 			return noList(list)
 		}
 		err.LogError()
@@ -628,7 +628,7 @@ func (b *bot) putDDB(in interface{}) (lisErr *listtoErr.ListtoError) {
 
 	input := (&dynamodb.PutItemInput{}).SetTableName(table).SetItem(item)
 
-	_, err = b.DDB().PutItem(input)
+	_, err = b.DDB.PutItem(input)
 	if err != nil {
 		lisErr = listtoErr.ConvertError(err)
 	}
@@ -648,7 +648,7 @@ func (b *bot) getDDB(guild, lis string) (list *lists.ListtoList, lisErr *listtoE
 		"name":  (&dynamodb.AttributeValue{}).SetS(lis),
 	})
 
-	output, err := b.ddb.GetItem(input)
+	output, err := b.DDB.GetItem(input)
 	if err != nil {
 		lisErr = listtoErr.ConvertError(err)
 		return

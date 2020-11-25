@@ -12,54 +12,44 @@ import (
 
 // bot holds all the info that needs to be passed around the bot.
 type bot struct {
-	dgo   *discordgo.Session
-	botID string
-	conf  *config.Config
-	ddb   *dynamodb.DynamoDB
+	Dgo   *discordgo.Session
+	BotID string
+	Config  *config.Config
+	DDB   *dynamodb.DynamoDB
 }
 
 // New creates a new bot instance.
 func New(conf *config.Config, ddb *dynamodb.DynamoDB) *bot {
 	return &bot{
-		conf: conf,
-		ddb:  ddb,
+		Config: conf,
+		DDB:  ddb,
 	}
-}
-
-// Config gets the config stored in the bot.
-func (b *bot) Config() *config.Config {
-	return b.conf
-}
-
-// DDB gets the DDB instance stored in the bot.
-func (b *bot) DDB() *dynamodb.DynamoDB {
-	return b.ddb
 }
 
 // Start the bot listener.
 func (b *bot) Start() {
-	dgo, err := discordgo.New("Bot " + b.conf.Token())
+	dgo, err := discordgo.New("Bot " + b.Config.Token)
 	if err != nil {
 		fmt.Println("could not create session", err)
 		return
 	}
-	b.dgo = dgo
+	b.Dgo = dgo
 
-	u, err := b.dgo.User("@me")
+	u, err := b.Dgo.User("@me")
 	if err != nil {
 		fmt.Println("could not get bot user", err)
 	}
 
-	b.botID = u.ID
+	b.BotID = u.ID
 
-	b.dgo.AddHandler(b.messageHandler())
+	b.Dgo.AddHandler(b.messageHandler())
 
-	if err := b.dgo.Open(); err != nil {
+	if err := b.Dgo.Open(); err != nil {
 		fmt.Println("could not open session", err)
 		return
 	}
 
-	b.dgo.UpdateStatus(0, fmt.Sprintf("with %shelp", b.conf.Prefix()))
+	b.Dgo.UpdateStatus(0, fmt.Sprintf("with %shelp", b.Config.Prefix))
 
 	fmt.Println("The bot has awoken...")
 }
@@ -70,15 +60,15 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		var list, arg, user string
 		var roles []string
 
-		if m.Author.ID == b.botID {
+		if m.Author.ID == b.BotID {
 			return
 		}
 
-		if !strings.HasPrefix(m.Content, b.conf.Prefix()) {
+		if !strings.HasPrefix(m.Content, b.Config.Prefix) {
 			return
 		}
 
-		message := strings.Split(strings.TrimPrefix(m.Content, b.conf.Prefix()), " ")
+		message := strings.Split(strings.TrimPrefix(m.Content, b.Config.Prefix), " ")
 		if len(message) == 0 {
 			return
 		}
