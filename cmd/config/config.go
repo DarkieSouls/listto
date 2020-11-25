@@ -9,8 +9,8 @@ import (
 
 // Config contains the configuration of the bot.
 type Config struct {
-	token  string
-	prefix string
+	Token  string
+	Prefix string
 }
 
 // NewConfig generates a new configuration based on current envvars.
@@ -33,8 +33,8 @@ func NewConfig() (c *Config, lisErr *listtoErr.ListtoError) {
 	}
 
 	c = new(Config)
-	c.token = token
-	c.prefix = prefix
+	c.Token = token
+	c.Prefix = prefix
 
 	return
 }
@@ -42,19 +42,9 @@ func NewConfig() (c *Config, lisErr *listtoErr.ListtoError) {
 // SetPrefix to the specified value.
 // Will not update if new value is nil or same as the previous one.
 func (c *Config) SetPrefix(prefix string) {
-	if strings.TrimSpace(prefix) == "" || strings.TrimSpace(prefix) == c.prefix {
+	if strings.TrimSpace(prefix) == "" || strings.TrimSpace(prefix) == c.Prefix {
 		return
 	}
 
-	c.prefix = prefix
-}
-
-// Prefix returns the prefix stored in the config.
-func (c *Config) Prefix() string {
-	return c.prefix
-}
-
-// Token returns the token stored in the config.
-func (c *Config) Token() string {
-	return c.token
+	c.Prefix = prefix
 }
