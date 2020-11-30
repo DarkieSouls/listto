@@ -126,7 +126,7 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 			access = append(access, m.Author.ID)
 
 			resp = b.createPrivateList(guild, list, access)
-		case "addtoPrivate", "ap":
+		case "addtoprivate", "ap":
 			var access []string
 			if len(m.MentionRoles) != 0 {
 				for _, r := range m.MentionRoles {
@@ -141,6 +141,21 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 			}
 
 			resp = b.addAccessToList(guild, list, access, user, roles)
+		case "removefromprivate", "rp":
+			var access []string
+			if len(m.MentionRoles) != 0 {
+				for _, r := range m.MentionRoles {
+					access = append(access, r)
+				}
+			}
+
+			if len(m.Mentions) != 0 {
+				for _, u := range m.Mentions {
+					access = append(access, u.ID)
+				}
+			}
+
+			resp = b.removeAccessFromList(guild, list, access, user, roles)
 		case "random", "rv":
 			resp = b.randomFromList(guild, list, user, roles)
 		case "remove", "r":

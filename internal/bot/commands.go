@@ -336,6 +336,10 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 					Value: fmt.Sprintf("Adds the specified roles or users to a private list\n__Example__:\n%saddtoprivate MyList @UserOne", p),
 				},
 				{
+					Name:  "removefromprivate, rp",
+					Value: fmt.Sprintf("Removes the specified roles or users from a private list\n__Example__:\n%srp MyList @Role", p),
+				},
+				{
 					Name:  "delete, d",
 					Value: fmt.Sprintf("Deletes a list\n__Example__:\n%sdelete MyList", p),
 				},
@@ -512,6 +516,36 @@ func (b *bot) addAccessToList(guild, list string, access []string, user string, 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I have added those tags to allowed users on %s", list),
 		Color:       green,
+	}
+}
+
+func (b *bot) removeAccessFromList(guild, list string, access []string, user string, roles []string) *discordgo.MessageEmbed {
+	lis, err := b.getDDB(guild, list)
+	if err != nil {
+		if err.Code == listtoErr.ListNotFound {
+			return noList(list)
+		}
+		err.LogError()
+		return failMsg()
+	}
+
+	if !lis.CanAccess(user, roles) {
+		return noPerms(list)
+	}
+
+	lis.RemoveAccess(access)
+
+	if err := b.putDDB(lis); err != nil {
+		err.LogError()
+		return &discordgo.MessageEmbed{
+			Description: fmt.Sprintf("I couldn't update the permissions for %s", list),
+			Color: red,
+		}
+	}
+
+	return &discordgo.MessageEmbed{
+		Description: fmt.Sprintf("I have removed those tags from allowed users on %s", list),
+		Color: green,
 	}
 }
 
