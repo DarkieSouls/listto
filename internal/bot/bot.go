@@ -12,17 +12,17 @@ import (
 
 // bot holds all the info that needs to be passed around the bot.
 type bot struct {
-	Dgo   *discordgo.Session
-	BotID string
-	Config  *config.Config
-	DDB   *dynamodb.DynamoDB
+	Dgo    *discordgo.Session
+	BotID  string
+	Config *config.Config
+	DDB    *dynamodb.DynamoDB
 }
 
 // New creates a new bot instance.
 func New(conf *config.Config, ddb *dynamodb.DynamoDB) *bot {
 	return &bot{
 		Config: conf,
-		DDB:  ddb,
+		DDB:    ddb,
 	}
 }
 

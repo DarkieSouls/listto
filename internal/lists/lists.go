@@ -137,6 +137,25 @@ func (l *ListtoList) AddAccess(access []string) {
 	}
 }
 
+func (l *ListtoList) RemoveAccess(access []string) {
+	if !l.Private {
+		return
+	}
+
+	for _, a := range access {
+		if len(l.Access) == 1 {
+			break
+		}
+		for i, v := range l.Access {
+			if a == v {
+				l.Access[i], l.Access[len(l.Access)-1] = l.Access[len(l.Access)-1], l.Access[i]
+				l.Access = l.Access[:len(l.Access)-1]
+				break
+			}
+		}
+	}
+}
+
 // CanAccess returns if the caller can access the ListtoList.
 func (l *ListtoList) CanAccess(user string, roles []string) bool {
 	if !l.Private {

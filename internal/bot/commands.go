@@ -539,13 +539,13 @@ func (b *bot) removeAccessFromList(guild, list string, access []string, user str
 		err.LogError()
 		return &discordgo.MessageEmbed{
 			Description: fmt.Sprintf("I couldn't update the permissions for %s", list),
-			Color: red,
+			Color:       red,
 		}
 	}
 
 	return &discordgo.MessageEmbed{
 		Description: fmt.Sprintf("I have removed those tags from allowed users on %s", list),
-		Color: green,
+		Color:       green,
 	}
 }
 
