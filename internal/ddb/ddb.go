@@ -96,13 +96,15 @@ func (d *DDB) GetAllLists(guild, user string) (values []*lists.ListtoList, lisEr
 		values = append(values, lis)
 	}
 
-	for _, v := range output2.Items {
-		lis := new(lists.ListtoList)
-		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
-			lisErr = listtoErr.ConvertError(err)
-			return
+	if output2 != nil {
+		for _, v := range output2.Items {
+			lis := new(lists.ListtoList)
+			if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
+				lisErr = listtoErr.ConvertError(err)
+				return
+			}
+			values = append(values, lis)
 		}
-		values = append(values, lis)
 	}
 
 	return
