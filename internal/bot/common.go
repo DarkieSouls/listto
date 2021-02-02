@@ -155,7 +155,7 @@ func (b *bot) UpdateAllLists() {
 			err.LogError()
 			return
 		}
-		if list.Type != lists.UnknownList {
+		if list.Type == lists.UnknownList {
 			if value.Private {
 				list.Type = lists.PrivateList
 			} else {
