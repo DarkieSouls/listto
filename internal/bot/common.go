@@ -50,7 +50,7 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 	p := b.Config.Prefix
 
 	switch strings.ToLower(arg) {
-	case "lists":
+	case "lists", "list":
 		return &discordgo.MessageEmbed{
 			Description: "Here are some commands involving lists:",
 			Color:       blue,
@@ -93,7 +93,7 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 				},
 			},
 		}
-	case "items":
+	case "items", "item":
 		return &discordgo.MessageEmbed{
 			Description: "Here are some commands involving list items:",
 			Color:       blue,

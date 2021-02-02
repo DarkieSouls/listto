@@ -128,7 +128,7 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		case "get", "g":
 			resp = b.getList(guild, list, arg, user, roles)
 		case "help", "h":
-			resp = b.help(list)
+			resp = b.help(strings.ToLower(list))
 		case "list", "l":
 			resp = b.listLists(guild, user, roles)
 		case "ping":
