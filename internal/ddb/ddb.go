@@ -82,7 +82,13 @@ func (d *DDB) GetAllLists(guild, user string) (values []*lists.ListtoList, lisEr
 		}
 	}
 
-	if len(output.Items) < 1 && len(output2.Items) < 1 {
+	if len(output.Items) < 1 {
+		if output2 != nil {
+			if len(output2.Items) < 1 {
+				lisErr = listtoErr.ListsNotFoundError()
+				return
+			}
+		}
 		lisErr = listtoErr.ListsNotFoundError()
 		return
 	}
