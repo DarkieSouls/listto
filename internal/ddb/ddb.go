@@ -60,8 +60,8 @@ func (d *DDB) GetAllLists(guild, user string) (values []*lists.ListtoList, lisEr
 		}
 	}()
 
-	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1 OR guild = :v2").
-		SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{":v1": (&dynamodb.AttributeValue{}).SetS(guild), ":v2": (&dynamodb.AttributeValue{}).SetS(user)})
+	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1").
+		SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{":v1": (&dynamodb.AttributeValue{}).SetS(guild)})
 
 	output, err := d.DDB.Query(input)
 	if err != nil {
@@ -69,12 +69,34 @@ func (d *DDB) GetAllLists(guild, user string) (values []*lists.ListtoList, lisEr
 		return
 	}
 
-	if len(output.Items) < 1 {
+	var output2 *dynamodb.QueryOutput
+
+	if guild != user {
+		input2 := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1").
+			SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{":v1": (&dynamodb.AttributeValue{}).SetS(user)})
+
+		output2, err = d.DDB.Query(input2)
+		if err != nil {
+			lisErr = listtoErr.ConvertError(err)
+			return
+		}
+	}
+
+	if len(output.Items) < 1 && len(output2.Items) < 1 {
 		lisErr = listtoErr.ListsNotFoundError()
 		return
 	}
 
 	for _, v := range output.Items {
+		lis := new(lists.ListtoList)
+		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
+			lisErr = listtoErr.ConvertError(err)
+			return
+		}
+		values = append(values, lis)
+	}
+
+	for _, v := range output2.Items {
 		lis := new(lists.ListtoList)
 		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
 			lisErr = listtoErr.ConvertError(err)
