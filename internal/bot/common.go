@@ -162,11 +162,10 @@ func (b *bot) UpdateAllLists() {
 				list.Type = lists.PublicList
 			}
 		}
-		fmt.Println(list)
-		// err = b.DDB.PutList(list)
-		// if err != nil {
-		// 	err.LogError()
-		// 	return
-		// }
+		err = b.DDB.PutList(list)
+		if err != nil {
+			err.LogError()
+			return
+		}
 	}
 }
