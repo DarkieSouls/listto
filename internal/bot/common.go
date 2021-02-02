@@ -60,8 +60,11 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 					Value: fmt.Sprintf("Clears a list\n__Example__:\n%sclear MyList", p),
 				},
 				{
-					Name:  "create, c",
-					Value: fmt.Sprintf("Creates a new list. Lists cannot contain spaces\n__Example__:\n%screate MyList", p),
+					Name: "create, c",
+					Value: fmt.Sprintf("Creates a new list. Lists cannot contain spaces"+
+						"\nIf you send this in a DM, then the list will be personal. Only you can access a personal list, but you can access it anywhere I can see"+
+						"\nYou can only access personal lists in DMs, public or private lists need to be accessed on their servers"+
+						"\n__Example__:\n%screate MyList", p),
 				},
 				{
 					Name: "createprivate, cp",
