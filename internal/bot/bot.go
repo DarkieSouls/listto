@@ -148,7 +148,10 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 				}
 			}
 
-			access = append(access, m.Author.ID)
+			access = append(access, user)
+			if dm {
+				access = []string{user}
+			}
 
 			resp = b.createList(guild, list, dm, access)
 		case "addtoprivate", "ap":
