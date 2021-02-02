@@ -4,22 +4,31 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/bwmarrin/discordgo"
 
 	"github.com/DarkieSouls/listto/cmd/config"
+	"github.com/DarkieSouls/listto/internal/lists"
+	"github.com/DarkieSouls/listto/internal/listtoErr"
 )
+
+type DDB interface {
+	GetList(string, string) (*lists.ListtoList, *listtoErr.ListtoError)
+	GetAllLists(string) ([]*lists.ListtoList, *listtoErr.ListtoError)
+	PutList(interface{}) *listtoErr.ListtoError
+	DeleteList(string, string) *listtoErr.ListtoError
+	GetAll() ([]*lists.OldListtoList, *listtoErr.ListtoError)
+}
 
 // bot holds all the info that needs to be passed around the bot.
 type bot struct {
 	Dgo    *discordgo.Session
 	BotID  string
 	Config *config.Config
-	DDB    *dynamodb.DynamoDB
+	DDB    DDB
 }
 
 // New creates a new bot instance.
-func New(conf *config.Config, ddb *dynamodb.DynamoDB) *bot {
+func New(conf *config.Config, ddb DDB) *bot {
 	return &bot{
 		Config: conf,
 		DDB:    ddb,
@@ -52,6 +61,8 @@ func (b *bot) Start() {
 	b.Dgo.UpdateStatus(0, fmt.Sprintf("with %shelp", b.Config.Prefix))
 
 	fmt.Println("The bot has awoken...")
+
+	b.UpdateAllLists()
 }
 
 // messageHandler returns a handlerfunc for messages.

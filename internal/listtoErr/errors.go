@@ -51,6 +51,14 @@ func ListNotFoundError(list string) *ListtoError {
 	}
 }
 
+// ListsNotFoundError returns an error if no lists could be found.
+func ListsNotFoundError() *ListtoError {
+	return &ListtoError{
+		Code:    ListNotFound,
+		Message: fmt.Sprintf("could not find any lists"),
+	}
+}
+
 // LogError prints the error in bot logs.
 func (e *ListtoError) LogError() {
 	fmt.Println(fmt.Sprintf("%s: %s", e.CallingMethod, e.Message))

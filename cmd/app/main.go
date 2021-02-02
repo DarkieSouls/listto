@@ -9,6 +9,7 @@ import (
 
 	"github.com/DarkieSouls/listto/cmd/config"
 	"github.com/DarkieSouls/listto/internal/bot"
+	"github.com/DarkieSouls/listto/internal/ddb"
 )
 
 func main() {
@@ -21,7 +22,9 @@ func main() {
 	awsCfg := aws.NewConfig().WithRegion("eu-west-2")
 	sess := session.Must(session.NewSession(awsCfg))
 
-	ddb := dynamodb.New(sess)
+	ddbConn := dynamodb.New(sess)
+
+	ddb := ddb.New(ddbConn)
 
 	bot := bot.New(config, ddb)
 

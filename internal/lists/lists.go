@@ -7,8 +7,27 @@ import (
 	"time"
 )
 
+const (
+	UnknownList  ListType = ""
+	PublicList            = "Public"
+	PrivateList           = "Private"
+	PersonalList          = "Personal"
+)
+
+// ListType denotes the type of ListtoList
+type ListType string
+
 // ListtoList defines the list object that holds all needed data for each list
 type ListtoList struct {
+	Guild  string     `json:"guild"`
+	Name   string     `json:"name"`
+	Type   ListType   `json:"type"`
+	Access []string   `json:"access"`
+	List   []ListItem `json:"list"`
+}
+
+// OldListtoList defines the list object that holds all needed data for each list
+type OldListtoList struct {
 	Guild   string     `json:"guild"`
 	Name    string     `json:"name"`
 	Private bool       `json:"private"`
@@ -23,11 +42,11 @@ type ListItem struct {
 }
 
 // NewList returns a new ListtoList object.
-func NewList(guild, name string, private bool) *ListtoList {
+func NewList(guild, name string, lType ListType) *ListtoList {
 	return &ListtoList{
-		Guild:   guild,
-		Name:    name,
-		Private: private,
+		Guild: guild,
+		Name:  name,
+		Type:  lType,
 	}
 }
 
@@ -119,7 +138,7 @@ func (l *ListtoList) Sort(sorter string) {
 
 // AddAccess to certain perties to a private ListtoList.
 func (l *ListtoList) AddAccess(access []string) {
-	if !l.Private {
+	if l.Type != PrivateList {
 		return
 	}
 
@@ -138,7 +157,7 @@ func (l *ListtoList) AddAccess(access []string) {
 }
 
 func (l *ListtoList) RemoveAccess(access []string) {
-	if !l.Private {
+	if l.Type != PrivateList {
 		return
 	}
 
@@ -158,7 +177,7 @@ func (l *ListtoList) RemoveAccess(access []string) {
 
 // CanAccess returns if the caller can access the ListtoList.
 func (l *ListtoList) CanAccess(user string, roles []string) bool {
-	if !l.Private {
+	if l.Type == PublicList {
 		return true
 	}
 
