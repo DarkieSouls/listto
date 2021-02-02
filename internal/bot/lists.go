@@ -92,7 +92,7 @@ func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.Me
 		return noPerms(list)
 	}
 
-	err := b.DDB.DeleteList(guild, user)
+	err := b.DDB.DeleteList(guild, list, user)
 	if err != nil {
 		fmt.Println("failed to delete item", err)
 		return &discordgo.MessageEmbed{

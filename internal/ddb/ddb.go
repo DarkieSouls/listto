@@ -133,7 +133,7 @@ func (d *DDB) PutList(in interface{}) (lisErr *listtoErr.ListtoError) {
 	return
 }
 
-func (d *DDB) DeleteList(guild, lis string) (lisErr *listtoErr.ListtoError) {
+func (d *DDB) DeleteList(guild, lis, user string) (lisErr *listtoErr.ListtoError) {
 	defer func() {
 		if lisErr != nil {
 			lisErr.SetCallingMethodIfNil("DeleteList")
@@ -148,6 +148,20 @@ func (d *DDB) DeleteList(guild, lis string) (lisErr *listtoErr.ListtoError) {
 	_, err := d.DDB.DeleteItem(input)
 	if err != nil {
 		lisErr = listtoErr.ConvertError(err)
+		return
+	}
+
+	if guild != user {
+
+		input = (&dynamodb.DeleteItemInput{}).SetTableName(table).SetKey(map[string]*dynamodb.AttributeValue{
+			"guild": (&dynamodb.AttributeValue{}).SetS(user),
+			"name":  (&dynamodb.AttributeValue{}).SetS(lis),
+		})
+
+		_, err = d.DDB.DeleteItem(input)
+		if err != nil {
+			lisErr = listtoErr.ConvertError(err)
+		}
 	}
 
 	return

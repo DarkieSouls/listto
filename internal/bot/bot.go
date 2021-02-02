@@ -15,7 +15,7 @@ type DDB interface {
 	GetList(string, string) (*lists.ListtoList, *listtoErr.ListtoError)
 	GetAllLists(string, string) ([]*lists.ListtoList, *listtoErr.ListtoError)
 	PutList(interface{}) *listtoErr.ListtoError
-	DeleteList(string, string) *listtoErr.ListtoError
+	DeleteList(string, string, string) *listtoErr.ListtoError
 }
 
 // bot holds all the info that needs to be passed around the bot.
