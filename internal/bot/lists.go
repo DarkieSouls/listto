@@ -43,8 +43,17 @@ func (b *bot) clearList(guild, list, user string, roles []string) *discordgo.Mes
 }
 
 // createList creates a new list.
-func (b *bot) createList(guild, list string) *discordgo.MessageEmbed {
-	lis := lists.NewList(guild, list, lists.PublicList)
+func (b *bot) createList(guild, list string, dm bool, access []string) *discordgo.MessageEmbed {
+	var lis *lists.ListtoList
+	if dm {
+		lis = lists.NewList(guild, list, lists.PersonalList)
+	} else if access != nil {
+		lis = lists.NewList(guild, list, lists.PrivateList)
+	} else {
+		lis = lists.NewList(guild, list, lists.PublicList)
+	}
+
+	lis.AddAccess(access)
 
 	_, err := b.DDB.GetList(guild, list)
 	if err == nil {
@@ -67,20 +76,16 @@ func (b *bot) createList(guild, list string) *discordgo.MessageEmbed {
 	}
 
 	return &discordgo.MessageEmbed{
-		Description: fmt.Sprintf("%s list created!", list),
+		Description: fmt.Sprintf("I created a %s list called %s for you", lis.Type, list),
 		Color:       green,
 	}
 }
 
 // deleteList deletes a list.
 func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
-	lis, aucErr := b.DDB.GetList(guild, list)
-	if aucErr != nil {
-		if aucErr.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		aucErr.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {
@@ -104,13 +109,9 @@ func (b *bot) deleteList(guild, list, user string, roles []string) *discordgo.Me
 
 // getList gets a list.
 func (b *bot) getList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.DDB.GetList(guild, list)
-	if err != nil {
-		if err.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		err.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {
@@ -169,7 +170,7 @@ func (b *bot) getList(guild, list, arg, user string, roles []string) *discordgo.
 
 // listLists prints a list of lists on the server.
 func (b *bot) listLists(guild, user string, roles []string) *discordgo.MessageEmbed {
-	listtoLists, err := b.DDB.GetAllLists(guild)
+	listtoLists, err := b.DDB.GetAllLists(guild, user)
 	if err != nil {
 		if err.Code == listtoErr.ListNotFound {
 			return &discordgo.MessageEmbed{
@@ -200,48 +201,11 @@ func (b *bot) listLists(guild, user string, roles []string) *discordgo.MessageEm
 	}
 }
 
-// createPrivateList creates a list with limited access.
-func (b *bot) createPrivateList(guild, list string, access []string) *discordgo.MessageEmbed {
-	// todo: make this actually have an effect
-	lis := lists.NewList(guild, list, lists.PrivateList)
-
-	lis.AddAccess(access)
-
-	_, err := b.DDB.GetList(guild, list)
-	if err == nil {
-		return &discordgo.MessageEmbed{
-			Description: fmt.Sprintf("I found another list already called %s", list),
-			Color:       yellow,
-		}
-	}
-	if err.Code != listtoErr.ListNotFound {
-		err.LogError()
-		return failMsg()
-	}
-
-	if err := b.DDB.PutList(lis); err != nil {
-		err.LogError()
-		return &discordgo.MessageEmbed{
-			Description: fmt.Sprintf("I couldn't create a list called %s", list),
-			Color:       red,
-		}
-	}
-
-	return &discordgo.MessageEmbed{
-		Description: fmt.Sprintf("I created a private list called %s for you", list),
-		Color:       green,
-	}
-}
-
 // addAccessToList adds the supplied users and roles to the allowed users on a list.
 func (b *bot) addAccessToList(guild, list string, access []string, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.DDB.GetList(guild, list)
-	if err != nil {
-		if err.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		err.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {
@@ -265,13 +229,9 @@ func (b *bot) addAccessToList(guild, list string, access []string, user string, 
 }
 
 func (b *bot) removeAccessFromList(guild, list string, access []string, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.DDB.GetList(guild, list)
-	if err != nil {
-		if err.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		err.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {
@@ -296,13 +256,9 @@ func (b *bot) removeAccessFromList(guild, list string, access []string, user str
 
 // sortList sorts the list.
 func (b *bot) sortList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.DDB.GetList(guild, list)
-	if err != nil {
-		if err.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		err.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {

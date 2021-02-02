@@ -6,19 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DarkieSouls/listto/internal/listtoErr"
 	"github.com/bwmarrin/discordgo"
 )
 
 // addToList adds a value to a list.
 func (b *bot) addToList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.DDB.GetList(guild, list)
-	if err != nil {
-		if err.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		err.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {
@@ -51,13 +46,9 @@ func (b *bot) addToList(guild, list, arg, user string, roles []string) *discordg
 }
 
 func (b *bot) editInList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.DDB.GetList(guild, list)
-	if err != nil {
-		if err.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		err.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {
@@ -116,13 +107,9 @@ func (b *bot) editInList(guild, list, arg, user string, roles []string) *discord
 
 // randomFromList selects a random element from the list.
 func (b *bot) randomFromList(guild, list, user string, roles []string) *discordgo.MessageEmbed {
-	lis, err := b.DDB.GetList(guild, list)
-	if err != nil {
-		if err.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		err.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {
@@ -139,13 +126,9 @@ func (b *bot) randomFromList(guild, list, user string, roles []string) *discordg
 
 // removeFromList removes an item from the list.
 func (b *bot) removeFromList(guild, list, arg, user string, roles []string) *discordgo.MessageEmbed {
-	lis, lisErr := b.DDB.GetList(guild, list)
-	if lisErr != nil {
-		if lisErr.Code == listtoErr.ListNotFound {
-			return noList(list)
-		}
-		lisErr.LogError()
-		return failMsg()
+	lis, msg := b.getDDBList(guild, list, user)
+	if msg != nil {
+		return msg
 	}
 
 	if !lis.CanAccess(user, roles) {

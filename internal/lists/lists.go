@@ -129,8 +129,13 @@ func (l *ListtoList) Sort(sorter string) {
 
 // AddAccess to certain perties to a private ListtoList.
 func (l *ListtoList) AddAccess(access []string) {
-	if l.Type != PrivateList {
+	if l.Type == PublicList {
 		return
+	}
+	if l.Type == PersonalList {
+		if l.Access != nil {
+			return
+		}
 	}
 
 	for _, a := range access {

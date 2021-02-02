@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/DarkieSouls/listto/internal/lists"
+	"github.com/DarkieSouls/listto/internal/listtoErr"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -139,4 +141,28 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 			},
 		}
 	}
+}
+
+func (b *bot) getDDBList(guild, list, user string) (*lists.ListtoList, *discordgo.MessageEmbed) {
+	lis, err := b.DDB.GetList(guild, list)
+	if err != nil {
+		if err.Code == listtoErr.ListNotFound {
+			if guild != user {
+				lis2, err2 := b.DDB.GetList(user, list)
+				if err2 != nil {
+					if err2.Code == listtoErr.ListNotFound {
+						return nil, noList(list)
+					}
+					err.LogError()
+					return nil, failMsg()
+				}
+				return lis2, nil
+			}
+			return nil, noList(list)
+		}
+		err.LogError()
+		return nil, failMsg()
+	}
+
+	return lis, nil
 }

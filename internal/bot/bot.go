@@ -13,7 +13,7 @@ import (
 
 type DDB interface {
 	GetList(string, string) (*lists.ListtoList, *listtoErr.ListtoError)
-	GetAllLists(string) ([]*lists.ListtoList, *listtoErr.ListtoError)
+	GetAllLists(string, string) ([]*lists.ListtoList, *listtoErr.ListtoError)
 	PutList(interface{}) *listtoErr.ListtoError
 	DeleteList(string, string) *listtoErr.ListtoError
 }
@@ -65,15 +65,31 @@ func (b *bot) Start() {
 // messageHandler returns a handlerfunc for messages.
 func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		var list, arg, user string
+		var list, arg string
 		var roles []string
+		channel := m.ChannelID
+		user := m.Author.ID
+		guild := user
 
-		if m.Author.ID == b.BotID {
+		if user == b.BotID {
 			return
 		}
 
 		if !strings.HasPrefix(m.Content, b.Config.Prefix) {
 			return
+		}
+
+		channelS, err := s.Channel(channel)
+		if err != nil {
+			fmt.Println("Failed to get channel", err)
+			return
+		}
+
+		dm := channelS.Type == discordgo.ChannelTypeDM
+
+		if !dm {
+			roles = m.Member.Roles
+			guild = m.GuildID
 		}
 
 		message := strings.Split(strings.TrimPrefix(m.Content, b.Config.Prefix), " ")
@@ -90,9 +106,6 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 				arg = arg + " " + message[i]
 			}
 		}
-		guild := m.GuildID
-		user = m.Author.ID
-		roles = m.Member.Roles
 
 		var resp *discordgo.MessageEmbed
 
@@ -103,7 +116,11 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		case "clear", "cl":
 			resp = b.clearList(guild, list, user, roles)
 		case "create", "c":
-			resp = b.createList(guild, list)
+			var access []string
+			if dm {
+				access = []string{user}
+			}
+			resp = b.createList(guild, list, dm, access)
 		case "delete", "d":
 			resp = b.deleteList(guild, list, user, roles)
 		case "edit", "e":
@@ -133,7 +150,7 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 
 			access = append(access, m.Author.ID)
 
-			resp = b.createPrivateList(guild, list, access)
+			resp = b.createList(guild, list, dm, access)
 		case "addtoprivate", "ap":
 			var access []string
 			if len(m.MentionRoles) != 0 {
@@ -173,10 +190,10 @@ func (b *bot) messageHandler() func(s *discordgo.Session, m *discordgo.MessageCr
 		}
 
 		if resp != nil {
-			_, err := s.ChannelMessageSendEmbed(m.ChannelID, resp)
+			_, err := s.ChannelMessageSendEmbed(channel, resp)
 			if err != nil {
 				fmt.Println("failed to send to discord", err)
-				_, _ = s.ChannelMessageSendEmbed(m.ChannelID, failMsg())
+				_, _ = s.ChannelMessageSendEmbed(channel, failMsg())
 			}
 		}
 	}

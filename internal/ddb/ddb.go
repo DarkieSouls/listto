@@ -53,15 +53,15 @@ func (d *DDB) GetList(guild, lis string) (list *lists.ListtoList, lisErr *listto
 	return
 }
 
-func (d *DDB) GetAllLists(guild string) (values []*lists.ListtoList, lisErr *listtoErr.ListtoError) {
+func (d *DDB) GetAllLists(guild, user string) (values []*lists.ListtoList, lisErr *listtoErr.ListtoError) {
 	defer func() {
 		if lisErr != nil {
 			lisErr.SetCallingMethodIfNil("GetAllLists")
 		}
 	}()
 
-	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1").
-		SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{":v1": (&dynamodb.AttributeValue{}).SetS(guild)})
+	input := (&dynamodb.QueryInput{}).SetTableName(table).SetKeyConditionExpression("guild = :v1 OR guild = :v2").
+		SetExpressionAttributeValues(map[string]*dynamodb.AttributeValue{":v1": (&dynamodb.AttributeValue{}).SetS(guild), ":v2": (&dynamodb.AttributeValue{}).SetS(user)})
 
 	output, err := d.DDB.Query(input)
 	if err != nil {
