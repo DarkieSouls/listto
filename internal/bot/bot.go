@@ -16,7 +16,6 @@ type DDB interface {
 	GetAllLists(string) ([]*lists.ListtoList, *listtoErr.ListtoError)
 	PutList(interface{}) *listtoErr.ListtoError
 	DeleteList(string, string) *listtoErr.ListtoError
-	GetAll() ([]*lists.OldListtoList, *listtoErr.ListtoError)
 }
 
 // bot holds all the info that needs to be passed around the bot.
@@ -61,8 +60,6 @@ func (b *bot) Start() {
 	b.Dgo.UpdateStatus(0, fmt.Sprintf("with %shelp", b.Config.Prefix))
 
 	fmt.Println("The bot has awoken...")
-
-	b.UpdateAllLists()
 }
 
 // messageHandler returns a handlerfunc for messages.

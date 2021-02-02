@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/DarkieSouls/listto/internal/lists"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -138,34 +137,6 @@ func (b *bot) help(arg string) *discordgo.MessageEmbed {
 					Value: fmt.Sprintf("Check if I'm alive\n__Example__:\n%sping", p),
 				},
 			},
-		}
-	}
-}
-
-func (b *bot) UpdateAllLists() {
-	values, err := b.DDB.GetAll()
-	if err != nil {
-		err.LogError()
-		return
-	}
-
-	for _, value := range values {
-		list, err := b.DDB.GetList(value.Guild, value.Name)
-		if err != nil {
-			err.LogError()
-			return
-		}
-		if list.Type == lists.UnknownList {
-			if value.Private {
-				list.Type = lists.PrivateList
-			} else {
-				list.Type = lists.PublicList
-			}
-		}
-		err = b.DDB.PutList(list)
-		if err != nil {
-			err.LogError()
-			return
 		}
 	}
 }

@@ -128,30 +128,3 @@ func (d *DDB) DeleteList(guild, lis string) (lisErr *listtoErr.ListtoError) {
 
 	return
 }
-
-func (d *DDB) GetAll() (values []*lists.OldListtoList, lisErr *listtoErr.ListtoError) {
-	defer func() {
-		if lisErr != nil {
-			lisErr.SetCallingMethodIfNil("GetAll")
-		}
-	}()
-
-	input := (&dynamodb.ScanInput{}).SetTableName(table)
-
-	output, err := d.DDB.Scan(input)
-	if err != nil {
-		lisErr = listtoErr.ConvertError(err)
-		return
-	}
-
-	for _, v := range output.Items {
-		lis := new(lists.OldListtoList)
-		if err := dynamodbattribute.UnmarshalMap(v, &lis); err != nil {
-			lisErr = listtoErr.ConvertError(err)
-			return
-		}
-		values = append(values, lis)
-	}
-
-	return
-}

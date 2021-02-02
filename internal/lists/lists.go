@@ -26,15 +26,6 @@ type ListtoList struct {
 	List   []ListItem `json:"list"`
 }
 
-// OldListtoList defines the list object that holds all needed data for each list
-type OldListtoList struct {
-	Guild   string     `json:"guild"`
-	Name    string     `json:"name"`
-	Private bool       `json:"private"`
-	Access  []string   `json:"access"`
-	List    []ListItem `json:"list"`
-}
-
 // ListItem represents a single value in a list.
 type ListItem struct {
 	Value     string `json:"value"`
